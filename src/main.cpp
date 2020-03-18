@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
 	if (argc < 3)
 	{
-		std::cout << "Usage: las2osg las_file_path output_path \n Support file format: ply las" << std::endl;
+		std::cout << "Usage: OsgbCreator points_file_path output_path \n Support file format: ply las" << std::endl;
 		return -1;
 	}
 
