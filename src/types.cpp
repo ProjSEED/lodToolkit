@@ -9,6 +9,7 @@ namespace tg
 			const char*		i_cFormat,
 			...)		
 		{
+			//printf(i_cFormat);
 			return true;
 		}
 	}

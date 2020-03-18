@@ -17,7 +17,7 @@ namespace tg
 
 			virtual int Reset(bool i_bToInnerCoord = false) { return 1; }
 
-			bool ReadLasFile(const std::string& i_filePath);
+			bool ReadFile(const std::string& i_filePath);
 
 			int NextPoint(tg::PointXYZINormalClassT<IntentType, IntenDim>& i_oPoint);	// >= 1 normal, 0 end, -1 error
 
@@ -31,6 +31,10 @@ namespace tg
 			}
 
 			int ApplyGeoTransform(std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints) {}
+
+		private:
+			bool LoadLas(const std::string& i_filePath);
+			bool LoadPly(const std::string& i_filePath);
 
 		private:
 			enum FileFormat {

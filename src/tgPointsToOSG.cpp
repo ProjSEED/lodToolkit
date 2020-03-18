@@ -176,7 +176,7 @@ namespace tg
 
 			TiXmlElement * SRS = new TiXmlElement("SRS");
 			elmRoot.LinkEndChild(SRS);
-			AddLeafNode(SRS, "Name", m_oPointVisitor->GetSRSName().c_str());
+			AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
 			//AddLeafNode(SRS, "Name", tg::GeoRefDB::GetInstance()->GetCurrentGeoRef().ToName().c_str());
 
 			TiXmlElement * Offset = new TiXmlElement("Offset");
