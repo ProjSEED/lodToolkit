@@ -3,9 +3,15 @@
 #include "liblas/liblas.hpp"
 #include "Ply.h"
 #include <boost/filesystem.hpp>
+#ifdef _WIN32
+	#pragma comment(lib, "../thirdparty/liblas/lib/liblas.lib")
+	#ifdef _DEBUG
+	#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIOd.lib")
+	#else
+	#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIO.lib")
+	#endif
+#endif
 
-#pragma comment(lib, "../thirdparty/liblas/lib/liblas.lib")
-#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIO.lib")
 
 namespace tg
 {
