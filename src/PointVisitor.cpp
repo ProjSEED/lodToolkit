@@ -153,10 +153,15 @@ namespace tg
 				pt.P[1] = m_pointRead->Y * m_laszipHeader->y_scale_factor + m_laszipHeader->y_offset;
 				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor + m_laszipHeader->z_offset;
 
-				// 16bits color to 8bits
-				pt.I[0] = (m_pointRead->rgb[0]/ 65535.0)*255.0;
-				pt.I[1] = (m_pointRead->rgb[1]/ 65535.0)*255.0;
-				pt.I[2] = (m_pointRead->rgb[2]/ 65535.0)*255.0;
+				auto GetColor = [](laszip_U16& color16Bit) -> unsigned char
+				{
+					return (color16Bit < 256) ? color16Bit : (color16Bit / 65535.0)*255.0;
+				};
+
+				auto& rgb = m_pointRead->rgb;
+				pt.I[0] = GetColor(rgb[0]);
+				pt.I[1] = GetColor(rgb[1]);
+				pt.I[2] = GetColor(rgb[2]);
 
 				m_currentPointId++;
 				return true;
@@ -175,9 +180,8 @@ namespace tg
 			bool ReadNextPoint(OSGBPoint& point) override;
 
 		private:
-			laszip_point* m_pointRead;//current reading point
-			laszip_POINTER m_laszipReader;
-			laszip_header* m_laszipHeader;
+			std::unique_ptr<liblas::Reader> m_lasReader;
+			std::ifstream m_lasFileStream;
 		};
 
 		LasReader::LasReader(const std::string& filename):
@@ -189,11 +193,35 @@ namespace tg
 
 		bool LasReader::Init()
 		{
+			if (!liblas::Open(m_lasFileStream, m_filename.c_str()))
+			{
+				//throw std::runtime_error(std::string("Can not open") + cloud_las_path_);
+				std::cout << "Can not open " << m_filename << "\n";
+				return false;
+			}
+
+			m_lasReader.reset(new liblas::Reader(m_lasFileStream));
+			m_pointCount = m_lasReader->GetHeader().GetPointRecordsCount();
 			return true;
 		}
 
-		bool LasReader::ReadNextPoint(OSGBPoint& point)
+		bool LasReader::ReadNextPoint(OSGBPoint& pt)
 		{
+			if (m_currentPointId >= m_pointCount) return false;
+
+			m_lasReader->ReadNextPoint();
+			liblas::Point const&p = m_lasReader->GetPoint();
+			liblas::Color color = p.GetColor();
+			// XYZ
+			pt.P[0] = p.GetX();
+			pt.P[1] = p.GetY();
+			pt.P[2] = p.GetZ();
+			// RGB
+			pt.I[0] = color.GetRed();
+			pt.I[1] = color.GetGreen();
+			pt.I[2] = color.GetBlue();
+
+			m_currentPointId++;
 			return true;
 		}
 
@@ -367,17 +395,16 @@ namespace tg
 				point.Class = l_oVertex.value;
 
 			m_currentPointId++;
-
 			return true;
 		}
 
 
 		////////////////////////// Point Visitor /////////////////////////////////
 		PointVisitor::PointVisitor() :
-			m_fileFormat(INVALID),
-			m_nCurIndexOfPoint(0),
 			m_pointsReader(NULL),
-			m_offset(0,0,0)
+			m_nNumOfPoints(0),
+			m_offset(0, 0, 0),
+			m_srsName("")
 		{
 		}
 
@@ -388,123 +415,36 @@ namespace tg
 			if (ext == ".ply")
 			{
 				std::cout << "ply" << std::endl;
-				if (!LoadPly(i_filePath))
-					return false;
+				m_pointsReader.reset(new PlyReader(i_filePath));
 			}
 			else if (ext == ".las")
 			{
 				std::cout << "las" << std::endl;
-				if (!LoadLas(i_filePath))
-					return false;
+				m_pointsReader.reset(new LasReader(i_filePath));
 			}
 			else if (ext == ".laz")
 			{
 				std::cout << "laz" << std::endl;
-				if (!LoadLaz(i_filePath))
-					return false;
+				m_pointsReader.reset(new LazReader(i_filePath));
 			}
 			else
 			{
 				std::cout << "invalid" << std::endl;
 				return false;
 			}
-				
-			return true;
-		}
-
-		bool PointVisitor::LoadLas(const std::string& i_filePath)
-		{
-			m_lstPoints.clear();
-			std::ifstream if_lasfile;
-			if (!liblas::Open(if_lasfile, i_filePath.c_str()))
-			{
-				//throw std::runtime_error(std::string("Can not open") + cloud_las_path_);
-				std::cout << "Can not open " << i_filePath << "\n";
-				return false;
-			}
-
-			liblas::Reader lasReader(if_lasfile);
-			liblas::Header const& header = lasReader.GetHeader();
-
-			m_nNumOfPoints = header.GetPointRecordsCount();
-			std::cout << "Point Nums: " << m_nNumOfPoints << std::endl;
-			// record global offset
-			m_offset[0] = header.GetOffsetX();
-			m_offset[1] = header.GetOffsetY();
-			m_offset[2] = header.GetOffsetZ();
-			std::cout << "Offset: " << m_offset[0] << " " << m_offset[1] << " " << m_offset[2] << std::endl;
-			// record SRC
-			auto SRC = header.GetSRS();
-			m_srsName = SRC.GetWKT();
-			std::cout << "SRS: " << m_srsName << std::endl;
-			// record points count
-			m_lstPoints.resize(m_nNumOfPoints);
-			m_nCurIndexOfPoint = 0;
-
-			int count = 0;
-			while (lasReader.ReadNextPoint())
-			{
-				liblas::Point const&p = lasReader.GetPoint();
-				liblas::Color color = p.GetColor();
-
-				auto& pt = m_lstPoints[count++];
-				pt.P[0] = p.GetX();
-				pt.P[1] = p.GetY();
-				pt.P[2] = p.GetZ();
-
-				//RGB
-				pt.I[0] = color.GetRed();
-				pt.I[1] = color.GetGreen();
-				pt.I[2] = color.GetBlue();
-			}
-
-			m_fileFormat = LAS_FILE;
-
-			return true;
-		}
-
-		bool PointVisitor::LoadLaz(const std::string& i_filePath)
-		{
-			m_pointsReader.reset(new LazReader(i_filePath));
-
+			
 			if (!m_pointsReader->Init())
 				return false;
-			m_nNumOfPoints = m_pointsReader->GetPointsCount();
-			m_fileFormat = LAZ_FILE;
-			return true;
-		}
 
-		bool PointVisitor::LoadPly(const std::string& i_filePath)
-		{
-			m_pointsReader.reset(new PlyReader(i_filePath));
-
-			if (!m_pointsReader->Init()) return false;
 			m_nNumOfPoints = m_pointsReader->GetPointsCount();
-			m_nCurIndexOfPoint = 0;
-			m_fileFormat = PLY_FILE;
+
 			return true;
 		}
 
 		int PointVisitor::NextPoint(OSGBPoint& i_oPoint)
 		{
-			if (m_nCurIndexOfPoint >= m_nNumOfPoints) return -1;
-			switch (m_fileFormat)
-			{
-				case PLY_FILE:
-				case LAZ_FILE:
-				{
-					m_pointsReader->ReadNextPoint(i_oPoint);
-					break;
-				}
-				case LAS_FILE:
-				{
-					i_oPoint = m_lstPoints[m_nCurIndexOfPoint];
-					break;
-				}
-				default:
-					break;
-			}
-			m_nCurIndexOfPoint++;
+			if(!m_pointsReader->ReadNextPoint(i_oPoint)) return -1;
+
 			return 1;
 		}
 	}
