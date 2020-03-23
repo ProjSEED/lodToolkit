@@ -98,6 +98,14 @@ namespace tg
 	class PointXYZINormalClassT
 	{
 	public:
+		PointXYZINormalClassT() :
+			P(0,0,0),
+			Normal(0,0,0),
+			Class(0)
+		{
+			I.Fill(0);
+		}
+
 		Point3F P;
 		Point3F Normal;
 		Vec<IntentT, Dim>	I;

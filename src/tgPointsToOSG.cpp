@@ -50,7 +50,7 @@ namespace tg
 			size_t l_nTileID = 0;
 			std::string l_strOutPutDirPath(i_cFilePath);
 			std::vector<std::string> l_lstTileFiles;
-			size_t l_nTileCount = m_oPointVisitor->GetNumOfPoints() / m_nTileSize;
+			size_t l_nTileCount = std::round(m_oPointVisitor->GetNumOfPoints() / (double)m_nTileSize);
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				std::cout << "process" << l_nTileID+1 << "/" << l_nTileCount << std::endl;
