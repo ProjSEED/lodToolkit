@@ -30,17 +30,23 @@ namespace tg
 			virtual bool ReadNextPoint(OSGBPoint& point) = 0;
 			int GetPointsCount() { return m_pointCount; }
 			int GetCurrentPointId() { return m_currentPointId; }
+			Point3F GetOffset() { return m_offset; }
+			std::string GetSRS() { return m_srsName; }
 
 		protected:
 			std::string m_filename;
 			int m_pointCount;
 			int m_currentPointId;
+			Point3F m_offset;
+			std::string m_srsName;
 		};
 
 		PointsReader::PointsReader(const std::string& filename):
 			m_filename(filename),
 			m_currentPointId(0),
-			m_pointCount(0)
+			m_pointCount(0),
+			m_offset(0, 0, 0),
+			m_srsName("")
 		{
 
 		}
@@ -437,6 +443,8 @@ namespace tg
 				return false;
 
 			m_nNumOfPoints = m_pointsReader->GetPointsCount();
+			m_offset = m_pointsReader->GetOffset();
+			m_srsName = m_pointsReader->GetSRS();
 
 			return true;
 		}
