@@ -15,22 +15,13 @@ namespace tg
 
 			int NextPoint(OSGBPoint& i_oPoint);	// >= 1 normal, 0 end, -1 error
 
+			Point3F GetOffset();
 			// TODO:ÍêÉÆ
-			Point3F GetOffset() { return m_offset; }
-
-			// TODO:ÍêÉÆ
-			std::string GetSRSName() { return m_srsName; }
-
-			size_t GetNumOfPoints()
-			{
-				return this->m_nNumOfPoints;
-			}
+			std::string GetSRSName();
+			size_t GetNumOfPoints();
 
 		private:
 			std::shared_ptr<PointsReader> m_pointsReader;
-			size_t m_nNumOfPoints;
-			Point3F m_offset;
-			std::string m_srsName;
 		};
 	}
 }

@@ -17,6 +17,11 @@
 #endif
 
 
+unsigned char Color8Bits(uint16_t color16Bit)
+{
+	return (color16Bit < 256) ? color16Bit : (color16Bit / 65535.0)*255.0;
+};
+
 namespace tg
 {
 	namespace io {
@@ -30,7 +35,7 @@ namespace tg
 			virtual bool ReadNextPoint(OSGBPoint& point) = 0;
 			int GetPointsCount() { return m_pointCount; }
 			int GetCurrentPointId() { return m_currentPointId; }
-			Point3F GetOffset() { return m_offset; }
+			Point3F GetOffset() { return m_offset; } // 将读取到的第一个点设为整体offset
 			std::string GetSRS() { return m_srsName; }
 
 		protected:
@@ -50,7 +55,7 @@ namespace tg
 		{
 
 		}
-		////////////////////////// Laz Reader /////////////////////////////////
+		////////////////////////// Laz/Laz Reader(laszip lib can read both las or laz) /////////////////////////////////
 		class LazReader:public PointsReader
 		{
 		public:
@@ -73,6 +78,7 @@ namespace tg
 
 		LazReader::~LazReader()
 		{
+			if (!m_laszipReader) return;
 			// close the reader
 			if (laszip_close_reader(m_laszipReader))
 			{
@@ -153,21 +159,24 @@ namespace tg
 					return false;
 				}
 
+				// init offset
+				if (m_currentPointId == 0)
+				{
+					m_offset[0] = m_laszipHeader->x_offset;
+					m_offset[1] = m_laszipHeader->y_offset;
+					m_offset[2] = m_laszipHeader->z_offset;
+				}
+
 				//laszip_dll_struct* pointer = (laszip_dll_struct*)laszip_reader;
 				// add offset and scale to coords
-				pt.P[0] = m_pointRead->X * m_laszipHeader->x_scale_factor + m_laszipHeader->x_offset;
-				pt.P[1] = m_pointRead->Y * m_laszipHeader->y_scale_factor + m_laszipHeader->y_offset;
-				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor + m_laszipHeader->z_offset;
-
-				auto GetColor = [](laszip_U16& color16Bit) -> unsigned char
-				{
-					return (color16Bit < 256) ? color16Bit : (color16Bit / 65535.0)*255.0;
-				};
+				pt.P[0] = m_pointRead->X * m_laszipHeader->x_scale_factor;
+				pt.P[1] = m_pointRead->Y * m_laszipHeader->y_scale_factor;
+				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor;
 
 				auto& rgb = m_pointRead->rgb;
-				pt.I[0] = GetColor(rgb[0]);
-				pt.I[1] = GetColor(rgb[1]);
-				pt.I[2] = GetColor(rgb[2]);
+				pt.I[0] = Color8Bits(rgb[0]);
+				pt.I[1] = Color8Bits(rgb[1]);
+				pt.I[2] = Color8Bits(rgb[2]);
 
 				m_currentPointId++;
 				return true;
@@ -206,7 +215,15 @@ namespace tg
 				return false;
 			}
 
-			m_lasReader.reset(new liblas::Reader(m_lasFileStream));
+			try {
+				m_lasReader.reset(new liblas::Reader(m_lasFileStream));
+			}
+			catch (...)
+			{
+				std::cout << "invalid file format" << std::endl;
+				return false;
+			}
+			
 			m_pointCount = m_lasReader->GetHeader().GetPointRecordsCount();
 			return true;
 		}
@@ -218,14 +235,22 @@ namespace tg
 			m_lasReader->ReadNextPoint();
 			liblas::Point const&p = m_lasReader->GetPoint();
 			liblas::Color color = p.GetColor();
+
+			// Init offset
+			if (m_currentPointId == 0)
+			{
+				m_offset[0] = p.GetX();
+				m_offset[1] = p.GetY();
+				m_offset[2] = p.GetZ();
+			}
 			// XYZ
-			pt.P[0] = p.GetX();
-			pt.P[1] = p.GetY();
-			pt.P[2] = p.GetZ();
+			pt.P[0] = p.GetX() - m_offset[0];
+			pt.P[1] = p.GetY() - m_offset[1];
+			pt.P[2] = p.GetZ() - m_offset[2];
 			// RGB
-			pt.I[0] = color.GetRed();
-			pt.I[1] = color.GetGreen();
-			pt.I[2] = color.GetBlue();
+			pt.I[0] = Color8Bits(color.GetRed());
+			pt.I[1] = Color8Bits(color.GetGreen());
+			pt.I[2] = Color8Bits(color.GetBlue());
 
 			m_currentPointId++;
 			return true;
@@ -260,6 +285,7 @@ namespace tg
 
 		PlyReader::~PlyReader()
 		{
+			if (!m_plyFile) return;
 			for (int i = 0; i < m_nrElems; i++) {
 				free(m_plyFile->elems[i]->name);
 				free(m_plyFile->elems[i]->store_prop);
@@ -389,13 +415,22 @@ namespace tg
 			if (m_currentPointId >= m_pointCount) return false;
 			PlyValueOrientedColorVertex<float> l_oVertex;
 			ply_get_element(m_plyFile, (void *)&l_oVertex);
+
+			// init offset
+			if (m_currentPointId == 0)
+			{
+				m_offset[0] = l_oVertex.point[0];
+				m_offset[1] = l_oVertex.point[1];
+				m_offset[2] = l_oVertex.point[2];
+			}
+
 			for (int k = 0; k < 3; ++k)
 			{
-				point.P[k] = l_oVertex.point[k];
+				point.P[k] = l_oVertex.point[k] - m_offset[k];
 				if (m_foundNormals)
 					point.Normal[k] = l_oVertex.normal[k];
 				if (m_foundColors)
-					point.I[k] = l_oVertex.color[k];
+					point.I[k] = Color8Bits(l_oVertex.color[k]);
 			}
 			if (m_foundClasses)
 				point.Class = l_oVertex.value;
@@ -407,10 +442,7 @@ namespace tg
 
 		////////////////////////// Point Visitor /////////////////////////////////
 		PointVisitor::PointVisitor() :
-			m_pointsReader(NULL),
-			m_nNumOfPoints(0),
-			m_offset(0, 0, 0),
-			m_srsName("")
+			m_pointsReader(NULL)
 		{
 		}
 
@@ -419,39 +451,41 @@ namespace tg
 			std::string ext = boost::filesystem::extension(i_filePath);
 			std::cout << "file format: ";
 			if (ext == ".ply")
-			{
-				std::cout << "ply" << std::endl;
 				m_pointsReader.reset(new PlyReader(i_filePath));
-			}
-			else if (ext == ".las")
-			{
-				std::cout << "las" << std::endl;
-				m_pointsReader.reset(new LasReader(i_filePath));
-			}
-			else if (ext == ".laz")
-			{
-				std::cout << "laz" << std::endl;
+			else if (ext == ".las" || ext == ".laz")
 				m_pointsReader.reset(new LazReader(i_filePath));
-			}
 			else
 			{
 				std::cout << "invalid" << std::endl;
 				return false;
 			}
 			
+			std::cout << ext << std::endl;
+
 			if (!m_pointsReader->Init())
 				return false;
-
-			m_nNumOfPoints = m_pointsReader->GetPointsCount();
-			m_offset = m_pointsReader->GetOffset();
-			m_srsName = m_pointsReader->GetSRS();
 
 			return true;
 		}
 
+		Point3F PointVisitor::GetOffset()
+		{
+			return m_pointsReader->GetOffset();
+		}
+
+		size_t PointVisitor::GetNumOfPoints()
+		{
+			return m_pointsReader->GetPointsCount();
+		}
+
+		std::string PointVisitor::GetSRSName()
+		{
+			return m_pointsReader->GetSRS();
+		}
+
 		int PointVisitor::NextPoint(OSGBPoint& i_oPoint)
 		{
-			if(!m_pointsReader->ReadNextPoint(i_oPoint)) return -1;
+			if (!m_pointsReader->ReadNextPoint(i_oPoint)) return -1;
 
 			return 1;
 		}
