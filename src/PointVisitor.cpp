@@ -135,6 +135,16 @@ namespace tg
 			m_pointCount = (m_laszipHeader->number_of_point_records ? 
 				m_laszipHeader->number_of_point_records : m_laszipHeader->extended_number_of_point_records);
 
+			int lengthRecords = m_laszipHeader->number_of_variable_length_records;
+			auto& vlrs = m_laszipHeader->vlrs; // Variable Length Records
+			for (int i = 0; i < lengthRecords; ++i)
+			{
+				if (vlrs[i].data == NULL) continue;
+				if (vlrs[i].record_id == 2111 || vlrs[i].record_id == 2112)
+					m_srsName = (char*)vlrs[i].data;// wkt
+			}
+			
+
 			// report how many points the file has
 			fprintf(stderr, "file '%s' contains %I64d points\n", file_name_in, m_pointCount);
 
@@ -452,7 +462,9 @@ namespace tg
 			std::cout << "file format: ";
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
-			else if (ext == ".las" || ext == ".laz")
+			//else if (ext == ".las")
+			//	m_pointsReader.reset(new LasReader(i_filePath));
+			else if (ext == ".laz" || ext == ".las")
 				m_pointsReader.reset(new LazReader(i_filePath));
 			else
 			{
