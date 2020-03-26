@@ -1,12 +1,12 @@
 #include "PointVisitor.h"
 #include <fstream>
-#include "liblas/liblas.hpp"
 #include "Ply.h"
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 #include "laszip_api.h"
+#include <iostream>
+#include <algorithm>
 
 #ifdef _WIN32
-	#pragma comment(lib, "../thirdparty/liblas/lib/liblas.lib")
 	#ifdef _DEBUG
 	#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIOd.lib")
 	#pragma comment(lib, "../thirdparty/LASzip/lib/LASzipd.lib")
@@ -16,12 +16,40 @@
 	#endif
 #endif
 
-
+///////////////////////////// Helper API /////////////////////////////////
 unsigned char Color8Bits(uint16_t color16Bit)
 {
 	return (color16Bit < 256) ? color16Bit : (color16Bit / 65535.0)*255.0;
 };
 
+struct MatchPathSeparator
+{
+	bool operator()(char ch) const
+	{
+		return ch == '/' || ch == '\\';
+	}
+};
+
+std::string getFileName(const std::string & full_path_in)
+{
+	return std::string(
+		std::find_if(full_path_in.rbegin(), full_path_in.rend(),
+			MatchPathSeparator()).base(),
+		full_path_in.end());
+}
+
+// get extension .xxx
+std::string getExtension(const std::string & full_path_in)
+{
+	std::string filename = getFileName(full_path_in);
+	std::size_t found = filename.find_last_of('.');
+	if (found < filename.size())
+		return filename.substr(found);
+	else
+		return std::string();
+}
+
+//////////////////////////// Points Reader ///////////////////////
 namespace tg
 {
 	namespace io {
@@ -193,77 +221,6 @@ namespace tg
 			}
 
 			return false;
-		}
-
-		////////////////////////// Las Reader /////////////////////////////////
-		class LasReader :public PointsReader
-		{
-		public:
-			LasReader(const std::string& filename);
-			bool Init() override;
-			~LasReader();
-			bool ReadNextPoint(OSGBPoint& point) override;
-
-		private:
-			std::unique_ptr<liblas::Reader> m_lasReader;
-			std::ifstream m_lasFileStream;
-		};
-
-		LasReader::LasReader(const std::string& filename):
-			PointsReader(filename)
-		{}
-
-		LasReader::~LasReader()
-		{}
-
-		bool LasReader::Init()
-		{
-			if (!liblas::Open(m_lasFileStream, m_filename.c_str()))
-			{
-				//throw std::runtime_error(std::string("Can not open") + cloud_las_path_);
-				std::cout << "Can not open " << m_filename << "\n";
-				return false;
-			}
-
-			try {
-				m_lasReader.reset(new liblas::Reader(m_lasFileStream));
-			}
-			catch (...)
-			{
-				std::cout << "invalid file format" << std::endl;
-				return false;
-			}
-			
-			m_pointCount = m_lasReader->GetHeader().GetPointRecordsCount();
-			return true;
-		}
-
-		bool LasReader::ReadNextPoint(OSGBPoint& pt)
-		{
-			if (m_currentPointId >= m_pointCount) return false;
-
-			m_lasReader->ReadNextPoint();
-			liblas::Point const&p = m_lasReader->GetPoint();
-			liblas::Color color = p.GetColor();
-
-			// Init offset
-			if (m_currentPointId == 0)
-			{
-				m_offset[0] = p.GetX();
-				m_offset[1] = p.GetY();
-				m_offset[2] = p.GetZ();
-			}
-			// XYZ
-			pt.P[0] = p.GetX() - m_offset[0];
-			pt.P[1] = p.GetY() - m_offset[1];
-			pt.P[2] = p.GetZ() - m_offset[2];
-			// RGB
-			pt.I[0] = Color8Bits(color.GetRed());
-			pt.I[1] = Color8Bits(color.GetGreen());
-			pt.I[2] = Color8Bits(color.GetBlue());
-
-			m_currentPointId++;
-			return true;
 		}
 
 		////////////////////////// PLY Reader /////////////////////////////////
@@ -458,12 +415,10 @@ namespace tg
 
 		bool PointVisitor::ReadFile(const std::string& i_filePath)
 		{
-			std::string ext = boost::filesystem::extension(i_filePath);
+			std::string ext = getExtension(i_filePath);
 			std::cout << "file format: ";
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
-			//else if (ext == ".las")
-			//	m_pointsReader.reset(new LasReader(i_filePath));
 			else if (ext == ".laz" || ext == ".las")
 				m_pointsReader.reset(new LazReader(i_filePath));
 			else
