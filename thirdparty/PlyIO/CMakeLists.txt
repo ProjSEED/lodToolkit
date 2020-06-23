@@ -1,12 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
-
-Project(PlyIO)
-
 include_directories(./include)
 
-set(CMAKE_DEBUG_POSTFIX d)
+file(GLOB PLY_IO_HEADER include/*.h)
+file(GLOB PLY_IO_SRC src/*.cpp)
 
-file(GLOB HEADER include/*.h)
-file(GLOB SRC src/*.cpp)
-
-add_library(PlyIO STATIC ${SRC} ${HEADER})
+add_library(PlyIO STATIC ${PLY_IO_SRC} ${PLY_IO_HEADER})

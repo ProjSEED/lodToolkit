@@ -17,11 +17,6 @@
 #include <osg/Point>
 #include <osgDB/FileUtils>
 
-#pragma comment(lib, "../thirdparty/OSG/lib/osg.lib")
-#pragma comment(lib, "../thirdparty/OSG/lib/osgDB.lib")
-#pragma comment(lib, "../thirdparty/OSG/lib/osgUtil.lib")
-#pragma comment(lib, "../thirdparty/OSG/lib/OpenThreads.lib")
-
 namespace tg
 {
 	namespace io

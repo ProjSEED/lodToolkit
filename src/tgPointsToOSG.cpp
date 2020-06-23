@@ -7,10 +7,6 @@
 
 #include "types.h"
 
-#ifdef _WIN32
-#pragma comment(lib, "../thirdparty/TinyXml/lib/tinyxml.lib")
-#endif
-
 namespace tg
 {
 	namespace io

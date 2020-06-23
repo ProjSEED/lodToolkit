@@ -6,16 +6,6 @@
 #include <iostream>
 #include <algorithm>
 
-#ifdef _WIN32
-	#ifdef _DEBUG
-	#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIOd.lib")
-	#pragma comment(lib, "../thirdparty/LASzip/lib/LASzipd.lib")
-	#else
-	#pragma comment(lib, "../thirdparty/PlyIO/lib/PlyIO.lib")
-	#pragma comment(lib, "../thirdparty/LASzip/lib/LASzip.lib")
-	#endif
-#endif
-
 ///////////////////////////// Helper API /////////////////////////////////
 unsigned char Color8Bits(uint16_t color16Bit)
 {
