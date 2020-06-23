@@ -40,7 +40,7 @@ std::string getExtension(const std::string & full_path_in)
 }
 
 //////////////////////////// Points Reader ///////////////////////
-namespace tg
+namespace seed
 {
 	namespace io {
 
@@ -274,7 +274,7 @@ namespace tg
 			m_plyFile = ply_open_for_reading((char*)m_filename.data(), &m_nrElems, &m_elist, &fileType, &version);
 			if (!m_plyFile)
 			{
-				tg::log::DumpLog(tg::log::Critical, "Open file %s failed!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename);
 				return false;
 			}
 
@@ -306,7 +306,7 @@ namespace tg
 					for (int i = 0; i < m_nrElems; i++) { free(m_elist[i]); }
 					free(m_elist);
 					ply_close(m_plyFile);
-					tg::log::DumpLog(tg::log::Critical, "Failed to get element description: %s", elem_name);
+					seed::log::DumpLog(seed::log::Critical, "Failed to get element description: %s", elem_name);
 					return false;
 				}
 
@@ -316,13 +316,13 @@ namespace tg
 					for (int j = 0; j < 3; j++)//至少得有点
 						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex< float >::ReadProperties[j]))) // 读取 xyz
 						{
-							tg::log::DumpLog(tg::log::Critical, "Read Vertex failed!");
+							seed::log::DumpLog(seed::log::Critical, "Read Vertex failed!");
 							return false;
 						}
 					//
 					if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[3]))) // 读取 Class
 					{
-						tg::log::DumpLog(tg::log::Critical, "Read class failed!");
+						seed::log::DumpLog(seed::log::Critical, "Read class failed!");
 						m_foundClasses = false;
 					}
 
@@ -330,7 +330,7 @@ namespace tg
 					for (int j = 4; j < 7; j++)
 						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j]))) // 读取 Normal
 						{
-							tg::log::DumpLog(tg::log::Critical, "Read normal failed!");
+							seed::log::DumpLog(seed::log::Critical, "Read normal failed!");
 							m_foundNormals = false;
 							break;
 						}
@@ -339,14 +339,14 @@ namespace tg
 					for (int j = 7; j < 10; j++)
 						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j])))
 						{
-							//tg::log::DumpLog(tg::log::Critical, "Read file %s failed(no color)!", i_filePath);
+							//seed::log::DumpLog(seed::log::Critical, "Read file %s failed(no color)!", i_filePath);
 							m_foundColors = false;
 						}
 					if (!m_foundColors)
 						for (int j = 10; j < 13; j++)
 							if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j])))
 							{
-								tg::log::DumpLog(tg::log::Critical, "Read color failed!");
+								seed::log::DumpLog(seed::log::Critical, "Read color failed!");
 								break;
 							}
 				}
@@ -360,7 +360,7 @@ namespace tg
 			}
 			if (!m_foundVertices)
 			{
-				tg::log::DumpLog(tg::log::Critical, "No vertice in file %s!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename);
 				return false;
 			}
 

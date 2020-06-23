@@ -4,7 +4,7 @@
 
 class TiXmlNode;
 
-namespace tg
+namespace seed
 {
 	namespace io
 	{
@@ -16,21 +16,21 @@ namespace tg
 			///////////////////////////////////////
 			// constructors and destructor
 
-			TG_EXPORT PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor);
+			SEED_EXPORT PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor);
 
-			TG_EXPORT ~PointsToOSG();
+			SEED_EXPORT ~PointsToOSG();
 
 			///////////////////////////////////////
 			// public member functions
 
-			TG_EXPORT int Write(const char* i_cFilePath);
+			SEED_EXPORT int Write(const char* i_cFilePath);
 
 		private:
 			///////////////////////////////////////
 			// private member functions
 
 			bool LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-				std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints);
+				std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints);
 
 			int ExportOffset(const char* i_cFilePath);
 			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);

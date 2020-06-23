@@ -6,15 +6,15 @@
 #include <assert.h>
 
 #if  defined(_WIN32) 
-#define TG_EXPORT __declspec(dllexport)
+#define SEED_EXPORT __declspec(dllexport)
 #else
-#define TG_EXPORT
+#define SEED_EXPORT
 #endif
 
 typedef unsigned char IntentType;
 const int IntenDim = 3;
 
-namespace tg
+namespace seed
 {
 	namespace log
 	{

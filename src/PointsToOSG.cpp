@@ -1,5 +1,5 @@
-#include "tgPointsToOSG.h"
-#include "tgPointTileToOSG.h"
+#include "PointsToOSG.h"
+#include "PointTileToOSG.h"
 
 //#include "tgPointVisitor.h"
 
@@ -7,7 +7,7 @@
 
 #include "types.h"
 
-namespace tg
+namespace seed
 {
 	namespace io
 	{
@@ -28,19 +28,19 @@ namespace tg
 		int PointsToOSG::Write(const char* i_cFilePath)
 		{
 			//QString l_strModule = ("Generate dense cloud LOD");
-			//tg::progress::UpdateProgressLabel(l_strModule);
-			//tg::ScopeTimer l_oTimer(l_strModule, tg::log::Info);
-			tg::progress::UpdateProgress(1);
-			if(tg::utils::CheckOrCreateFolder(i_cFilePath) == false)
+			//seed::progress::UpdateProgressLabel(l_strModule);
+			//seed::ScopeTimer l_oTimer(l_strModule, seed::log::Info);
+			seed::progress::UpdateProgress(1);
+			if(seed::utils::CheckOrCreateFolder(i_cFilePath) == false)
 			{
 				return 0;
 			}
-			//tg::utils::CleanFolder(i_cFilePath);
-			//std::shared_ptr<PointVisitor> l_oPointVisitor(new tg::io::PointVisitor(true));
+			//seed::utils::CleanFolder(i_cFilePath);
+			//std::shared_ptr<PointVisitor> l_oPointVisitor(new seed::io::PointVisitor(true));
 			//l_oPointVisitor->Reset(true);
-			std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> l_lstPoints;
+			std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> l_lstPoints;
 			l_lstPoints.reserve(this->m_nTileSize);
-			tg::progress::UpdateProgress(10);
+			seed::progress::UpdateProgress(10);
 
 			this->m_nProcessedPoints = 0;
 			size_t l_nTileID = 0;
@@ -58,7 +58,7 @@ namespace tg
 				char strBlock[16];
 				itoa(l_nTileID, strBlock, 10);
 				outPutFileFullName = l_strOutPutDirPath + "\\" + std::string(strBlock);
-				if (tg::utils::CheckOrCreateFolder(outPutFileFullName) == false)
+				if (seed::utils::CheckOrCreateFolder(outPutFileFullName) == false)
 				{
 					return 0;
 				}
@@ -70,14 +70,14 @@ namespace tg
 				}
 				catch (...)
 				{
-					tg::log::DumpLog(tg::log::Critical, "Generate point tiles failed!");
+					seed::log::DumpLog(seed::log::Critical, "Generate point tiles failed!");
 					return 0;
 				}
 
 				std::string lodName = std::string(strBlock) + "\\" + "L0_0_tile.osgb";
 
 				std::string fullPath = l_strOutPutDirPath + "\\" + lodName;
-				if (tg::utils::FileExists(fullPath))
+				if (seed::utils::FileExists(fullPath))
 				{
 					l_lstTileFiles.push_back(lodName);
 				}
@@ -88,11 +88,11 @@ namespace tg
 				int l_nPos = (int)l_dPos;
 				l_nPos = l_nPos < 10 ? 10 : l_nPos;
 				l_nPos = l_nPos > 95 ? 95 : l_nPos;
-				tg::progress::UpdateProgress(l_nPos);
+				seed::progress::UpdateProgress(l_nPos);
 			}
 			/////////////////////////////////////////////////////////////////////////
 			{
-				tg::log::DumpLog(tg::log::Debug, "Generate root node...");
+				seed::log::DumpLog(seed::log::Debug, "Generate root node...");
 				std::string mainName = l_strOutPutDirPath + "/DenseCloud.osgb";
 				osg::ref_ptr<osg::MatrixTransform> pRoot = new osg::MatrixTransform();
 				//pRoot->setMatrix(osg::Matrix::translate(l_oOffset.x, l_oOffset.y, l_oOffset.z));
@@ -107,12 +107,12 @@ namespace tg
 					//Ð´ÈëÎÄ¼þ;
 					if (osgDB::writeNodeFile(*pRoot, mainName, pOpt) == false)
 					{
-						tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", mainName.c_str());
+						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", mainName.c_str());
 					}
 				}
 				catch (...)
 				{
-					tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", mainName.c_str());
+					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", mainName.c_str());
 				}
 			}
 
@@ -123,7 +123,7 @@ namespace tg
 		}
 
 		bool PointsToOSG::LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-			std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints)
+			std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints)
 		{
 			i_lstPoints.clear();
 			size_t l_nCount = 0;
@@ -135,7 +135,7 @@ namespace tg
 				l_nTileSize = i_oPointVisitor->GetNumOfPoints() - this->m_nProcessedPoints;
 			}
 
-			tg::PointXYZINormalClassT<IntentType, IntenDim> l_oPoint;
+			seed::PointXYZINormalClassT<IntentType, IntenDim> l_oPoint;
 			while (l_nCount < l_nTileSize)
 			{
 				int l_nFlag = i_oPointVisitor->NextPoint(l_oPoint);
@@ -175,7 +175,7 @@ namespace tg
 			TiXmlElement * SRS = new TiXmlElement("SRS");
 			elmRoot.LinkEndChild(SRS);
 			AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
-			//AddLeafNode(SRS, "Name", tg::GeoRefDB::GetInstance()->GetCurrentGeoRef().ToName().c_str());
+			//AddLeafNode(SRS, "Name", seed::GeoRefDB::GetInstance()->GetCurrentGeoRef().ToName().c_str());
 
 			TiXmlElement * Offset = new TiXmlElement("Offset");
 			SRS->LinkEndChild(Offset);

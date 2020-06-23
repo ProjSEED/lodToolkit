@@ -1,6 +1,6 @@
-#include "tgPointTileToOSG.h"
+#include "PointTileToOSG.h"
 
-namespace tg
+namespace seed
 {
 	namespace io
 	{
@@ -42,7 +42,7 @@ namespace tg
 			return maxAxisInfo;
 		}
 
-		bool PointTileToOSG::Generate(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+		bool PointTileToOSG::Generate(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 			const std::string saveFilePath)
 		{
 			std::vector<unsigned int> pointIndex;
@@ -50,7 +50,7 @@ namespace tg
 			for (int i = 0; i < pointSet->size(); i++)
 			{
 				pointIndex.push_back(i);
-				tg::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(i);
+				seed::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(i);
 				boundingBox.expandBy(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
 			}
 			try
@@ -66,7 +66,7 @@ namespace tg
 			return true;
 		}
 
-		osg::Geode *PointTileToOSG::MakeNodeGeode(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+		osg::Geode *PointTileToOSG::MakeNodeGeode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 			std::vector<unsigned int> &pointIndex)
 		{
 			if (pointIndex.size() <= 0)
@@ -82,7 +82,7 @@ namespace tg
 
 			for (std::vector<unsigned int>::iterator i = pointIndex.begin(); i != pointIndex.end(); i++)
 			{
-				tg::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(*i);
+				seed::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(*i);
 				pointArray->push_back(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
 				colorArray->push_back(
 					osg::Vec4((float)tmpPoint.I[0] / 255.0f,
@@ -108,7 +108,7 @@ namespace tg
 			return geode.release();
 		}
 
-		bool PointTileToOSG::BuildNode(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+		bool PointTileToOSG::BuildNode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 			std::vector<unsigned int> &pointIndex,
 			osg::BoundingBox boundingBox,
 			const std::string saveFilePath,
@@ -143,12 +143,12 @@ namespace tg
 					//写入文件;
 					if (osgDB::writeNodeFile(*(nodeGeode.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
 					{
-						tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 					}
 				}
 				catch (...)
 				{
-					tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 				}
 				//std::cout << "Make Leaf node complete.." << std::endl;
 				return true;
@@ -192,7 +192,7 @@ namespace tg
 				}
 				else
 				{
-					tg::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(pointIndex[i]);
+					seed::PointXYZINormalClassT<IntentType, IntenDim> tmpPoint = pointSet->at(pointIndex[i]);
 					if (tmpPoint.P[int(maxAxisInfo.aixType)] > mid)
 					{
 						rightPointSetIndex.push_back(pointIndex[i]);
@@ -257,12 +257,12 @@ namespace tg
 				//写入文件;
 				if (osgDB::writeNodeFile(*(mt.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
 				{
-					tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 				}
 			}
 			catch (...)
 			{
-				tg::log::DumpLog(tg::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+				seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 			}
 			//释放selfPointIndex;
 			selfPointSetIndex.swap(std::vector<unsigned int>());

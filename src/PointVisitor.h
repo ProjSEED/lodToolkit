@@ -1,10 +1,10 @@
 #include "types.h"
 
-namespace tg
+namespace seed
 {
 	namespace io {
 		class PointsReader;
-		typedef tg::PointXYZINormalClassT<IntentType, IntenDim> OSGBPoint;
+		typedef seed::PointXYZINormalClassT<IntentType, IntenDim> OSGBPoint;
 		class PointVisitor {
 		public:
 			PointVisitor();

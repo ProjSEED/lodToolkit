@@ -17,7 +17,7 @@
 #include <osg/Point>
 #include <osgDB/FileUtils>
 
-namespace tg
+namespace seed
 {
 	namespace io
 	{
@@ -67,7 +67,7 @@ namespace tg
 				_pointSize = pointSize;
 			}
 
-			bool Generate(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+			bool Generate(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 				const std::string saveFilePath);
 		protected:
 			unsigned int _maxTreeLevel;
@@ -76,14 +76,14 @@ namespace tg
 			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 			float _pointSize;
 
-			bool BuildNode(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+			bool BuildNode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 				std::vector<unsigned int> &pointIndex,
 				osg::BoundingBox boundingBox,
 				const std::string saveFilePath,
 				unsigned int level,
 				unsigned int childNo);
 
-			osg::Geode *MakeNodeGeode(const std::vector<tg::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+			osg::Geode *MakeNodeGeode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
 				std::vector<unsigned int> &pointIndex);
 		};
 

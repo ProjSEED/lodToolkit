@@ -1,4 +1,4 @@
-#include "tgPointsToOSG.h"
+#include "PointsToOSG.h"
 #include "types.h"
 #include <iostream>
 #include <fstream>
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	}
 
 	std::cout << "processing started ..." << std::endl;
-	std::shared_ptr<tg::io::PointVisitor> l_pointVistor(new tg::io::PointVisitor);
+	std::shared_ptr<seed::io::PointVisitor> l_pointVistor(new seed::io::PointVisitor);
 	if (!l_pointVistor->ReadFile(argv[1]))
 	{
 		std::cout << "Read file failed" << std::endl;
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	}
 		
 
-	tg::io::PointsToOSG l_points2OSG(l_pointVistor);
+	seed::io::PointsToOSG l_points2OSG(l_pointVistor);
 	l_points2OSG.Write(argv[2]);
 	std::cout << "processing ended ..." << std::endl;
 

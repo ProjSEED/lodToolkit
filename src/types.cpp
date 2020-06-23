@@ -1,7 +1,7 @@
 #include "types.h"
 #include <experimental/filesystem>
 
-namespace tg
+namespace seed
 {
 	namespace log
 	{
@@ -33,7 +33,7 @@ namespace tg
 			}
 			if (std::experimental::filesystem::create_directories(i_strDir) == false)
 			{
-				tg::log::DumpLog(tg::log::Critical, "Create folder %s failed!", i_strDir.c_str());
+				seed::log::DumpLog(seed::log::Critical, "Create folder %s failed!", i_strDir.c_str());
 				return false;
 			}
 			else
