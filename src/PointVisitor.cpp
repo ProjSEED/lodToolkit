@@ -6,11 +6,11 @@
 #include <sstream>
 #include <algorithm>
 
-//////////////////////////// Points Reader ///////////////////////
 namespace seed
 {
 	namespace io {
 
+		//////////////////////////// Points Reader ///////////////////////
 		class PointsReader
 		{
 		public:
@@ -20,7 +20,7 @@ namespace seed
 			virtual bool ReadNextPoint(OSGBPoint& point) = 0;
 			size_t GetPointsCount() { return m_pointCount; }
 			size_t GetCurrentPointId() { return m_currentPointId; }
-			Point3F GetOffset() { return m_offset; } // 将读取到的第一个点设为整体offset
+			Point3F GetOffset() { return m_offset; } // set first point as offset
 			std::string GetSRS() { return m_srsName; }
 
 		protected:
@@ -40,6 +40,7 @@ namespace seed
 		{
 
 		}
+
 		////////////////////////// Laz/Laz Reader(laszip lib can read both las or laz) /////////////////////////////////
 		class LazReader:public PointsReader
 		{
@@ -67,13 +68,13 @@ namespace seed
 			// close the reader
 			if (laszip_close_reader(m_laszipReader))
 			{
-				fprintf(stderr, "DLL ERROR: closing laszip reader\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in closing laszip reader!");
 			}
 
 			// destroy the reader
 			if (laszip_destroy(m_laszipReader))
 			{
-				fprintf(stderr, "DLL ERROR: destroying laszip reader\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in destroying laszip reader!");
 			}
 		}
 
@@ -89,14 +90,14 @@ namespace seed
 
 			if (laszip_get_version(&version_major, &version_minor, &version_revision, &version_build))
 			{
-				fprintf(stderr, "DLL ERROR: getting LASzip DLL version number\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in getting LASzip version number!");
 				return false;
 			}
 			
 			// create the reader
 			if (laszip_create(&m_laszipReader))
 			{
-				fprintf(stderr, "DLL ERROR: creating laszip reader\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in creating laszip reader!");
 				return false;
 			}
 
@@ -104,15 +105,15 @@ namespace seed
 			laszip_BOOL is_compressed = 0;
 			if (laszip_open_reader(m_laszipReader, file_name_in, &is_compressed))
 			{
-				fprintf(stderr, "DLL ERROR: opening laszip reader for '%s'\n", file_name_in);
+				seed::log::DumpLog(seed::log::Critical, "An error occured in opening laszip reader for '%s'", file_name_in);
 				return false;
 			}
 
-			fprintf(stderr, "file '%s' is %scompressed\n", file_name_in, (is_compressed ? "" : "un"));
+			seed::log::DumpLog(seed::log::Debug, "file '%s' is %scompressed\n", file_name_in, (is_compressed ? "" : "un"));
 			// get a pointer to the header of the reader that was just populated
 			if (laszip_get_header_pointer(m_laszipReader, &m_laszipHeader))
 			{
-				fprintf(stderr, "DLL ERROR: getting header pointer from laszip reader\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in getting header pointer from laszip reader!");
 				return false;
 			}
 
@@ -129,14 +130,13 @@ namespace seed
 					m_srsName = (char*)vlrs[i].data;// wkt
 			}
 			
-
 			// report how many points the file has
-			fprintf(stderr, "file '%s' contains %I64d points\n", file_name_in, m_pointCount);
+			seed::log::DumpLog(seed::log::Debug, "file '%s' contains %I64d points", file_name_in, m_pointCount);
 
 			// get a pointer to the points that will be read
 			if (laszip_get_point_pointer(m_laszipReader, &m_pointRead))
 			{
-				fprintf(stderr, "DLL ERROR: getting point pointer from laszip reader\n");
+				seed::log::DumpLog(seed::log::Critical, "An error occured in getting point pointer from laszip reader!");
 				return false;
 			}
 
@@ -150,7 +150,7 @@ namespace seed
 				// read a point
 				if (laszip_read_point(m_laszipReader))
 				{
-					fprintf(stderr, "DLL ERROR: reading point %I64d\n", m_currentPointId);
+					seed::log::DumpLog(seed::log::Critical, "An error occured in reading point %I64d", m_currentPointId);
 					return false;
 				}
 
@@ -235,7 +235,7 @@ namespace seed
 			m_plyFile = ply_open_for_reading((char*)m_filename.data(), &m_nrElems, &m_elist, &fileType, &version);
 			if (!m_plyFile)
 			{
-				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename.c_str());
 				return false;
 			}
 
@@ -306,7 +306,7 @@ namespace seed
 			}
 			if (!m_foundVertices)
 			{
-				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename.c_str());
 				return false;
 			}
 
@@ -338,7 +338,7 @@ namespace seed
 			return true;
 		}
 
-		////////////////////////// PLY Reader /////////////////////////////////
+		////////////////////////// XYZRGB Reader /////////////////////////////////
 		class XYZRGBReader :public PointsReader
 		{
 		public:
@@ -367,7 +367,7 @@ namespace seed
 			m_xyzFile.open(m_filename);
 			if (m_xyzFile.bad())
 			{
-				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename.c_str());
 				return false;
 			}
 			std::string line;
@@ -379,7 +379,7 @@ namespace seed
 			m_xyzFile.seekg(0, m_xyzFile.beg);
 			if (!m_pointCount)
 			{
-				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename);
+				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename.c_str());
 				return false;
 			}
 			return true;
@@ -432,7 +432,6 @@ namespace seed
 		bool PointVisitor::ReadFile(const std::string& i_filePath)
 		{
 			std::string ext = utils::getExtension(i_filePath);
-			std::cout << "file format: ";
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
 			else if (ext == ".laz" || ext == ".las")
@@ -441,11 +440,10 @@ namespace seed
 				m_pointsReader.reset(new XYZRGBReader(i_filePath));
 			else
 			{
-				std::cout << "invalid" << std::endl;
+				seed::log::DumpLog(seed::log::Critical, "%s is NOT supported now.", ext.c_str());
 				return false;
 			}
-			
-			std::cout << ext << std::endl;
+			seed::log::DumpLog(seed::log::Info, "Input file format: %s", ext.c_str());
 
 			if (!m_pointsReader->Init())
 				return false;

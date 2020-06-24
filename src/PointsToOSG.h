@@ -16,14 +16,14 @@ namespace seed
 			///////////////////////////////////////
 			// constructors and destructor
 
-			SEED_EXPORT PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor);
+			PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor);
 
-			SEED_EXPORT ~PointsToOSG();
+			~PointsToOSG();
 
 			///////////////////////////////////////
 			// public member functions
 
-			SEED_EXPORT int Write(const char* i_cFilePath);
+			int Write(const std::string& i_cFilePath);
 
 		private:
 			///////////////////////////////////////
@@ -32,7 +32,7 @@ namespace seed
 			bool LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
 				std::vector<OSGBPoint>& i_lstPoints);
 
-			int ExportSRS(const char* i_cFilePath);
+			int ExportSRS(const std::string& i_cFilePath);
 			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);
 			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText);
 			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText);

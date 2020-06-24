@@ -1,30 +1,34 @@
 #include "PointsToOSG.h"
-#include <iostream>
+#include "CmdParser/cmdparser.hpp"
+
+void configure_parser(cli::Parser& parser) {
+	parser.set_required<std::string>("i", "input", "input file path");
+	parser.set_required<std::string>("o", "output", "output dir path");
+}
 
 int main(int argc, char** argv)
 {
-	if (argc < 3)
+	cli::Parser parser(argc, argv);
+	configure_parser(parser);
+	parser.run_and_exit_if_error();
+
+	seed::log::DumpLog(seed::log::Debug, "Process started...");
+	std::shared_ptr<seed::io::PointVisitor> pointVistor(new seed::io::PointVisitor);
+	if (pointVistor->ReadFile(parser.get<std::string>("i")))
 	{
-		std::cout << "-------------------------------------------------------\n"
-			      << "|  Usage: ToOSGB points_file_path output_path			|\n" 
-			      << "|  Support file format: ply las laz xyz               |\n" 
-				  << "-------------------------------------------------------\n" 
-			      << std::endl;
-		return -1;
+		seed::io::PointsToOSG points2OSG(pointVistor);
+		if (points2OSG.Write(parser.get<std::string>("o")) > 0)
+		{
+			seed::log::DumpLog(seed::log::Debug, "Process succeed!");
+		}
+		else
+		{
+			seed::log::DumpLog(seed::log::Critical, "Process failed!");
+		}
 	}
-
-	std::cout << "processing started ..." << std::endl;
-	std::shared_ptr<seed::io::PointVisitor> l_pointVistor(new seed::io::PointVisitor);
-	if (!l_pointVistor->ReadFile(argv[1]))
+	else
 	{
-		std::cout << "Read file failed" << std::endl;
-		return -1;
+		seed::log::DumpLog(seed::log::Critical, "Can NOT open file %s", parser.get<std::string>("i"));
 	}
-		
-
-	seed::io::PointsToOSG l_points2OSG(l_pointVistor);
-	l_points2OSG.Write(argv[2]);
-	std::cout << "processing ended ..." << std::endl;
-
-	return 1;
+	return 1;	
 }

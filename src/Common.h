@@ -5,12 +5,6 @@
 #include <string>
 #include <assert.h>
 
-#if  defined(_WIN32) 
-#define SEED_EXPORT __declspec(dllexport)
-#else
-#define SEED_EXPORT
-#endif
-
 typedef unsigned char IntentType;
 const int IntenDim = 3;
 

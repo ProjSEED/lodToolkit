@@ -11,7 +11,7 @@ namespace seed
 		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor) :
 			m_oPointVisitor(i_oPointVisitor),
 			m_nTileSize(1e6), m_nProcessedPoints(0),
-			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(2.0f)
+			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(3.0f)
 		{
 
 		}
@@ -21,7 +21,7 @@ namespace seed
 
 		}
 
-		int PointsToOSG::Write(const char* i_cFilePath)
+		int PointsToOSG::Write(const std::string& i_cFilePath)
 		{
 			//seed::ScopeTimer l_oTimer("PointsToOSG", seed::log::Info);
 			seed::progress::UpdateProgress(1);
@@ -42,6 +42,7 @@ namespace seed
 			osg::BoundingBox boundingBoxGlobal;
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
+				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
 				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>();
 				lodGenerator->SetParameter(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio);
 				lodGenerator->SetPointSize(this->m_fPointSize);
@@ -113,7 +114,8 @@ namespace seed
 
 			/////////////////////////////////////////////////////////////////////////
 			std::string xmlName = l_strOutPutDirPath + "/SRS.xml";
-			this->ExportSRS(xmlName.c_str());
+			this->ExportSRS(xmlName);
+			seed::progress::UpdateProgress(100);
 			return 1;
 		}
 
@@ -158,9 +160,9 @@ namespace seed
 			}
 		}
 
-		int PointsToOSG::ExportSRS(const char* i_cFilePath)
+		int PointsToOSG::ExportSRS(const std::string& i_cFilePath)
 		{
-			TiXmlDocument xmlDoc(i_cFilePath);
+			TiXmlDocument xmlDoc(i_cFilePath.c_str());
 			TiXmlDeclaration Declaration("1.0", "utf-8", "");
 			xmlDoc.InsertEndChild(Declaration);
 

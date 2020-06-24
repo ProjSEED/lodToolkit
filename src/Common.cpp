@@ -12,6 +12,12 @@ namespace seed
 			const char*		i_cFormat,
 			...)		
 		{
+			if (i_nType == Debug)
+			{
+#ifndef _DEBUG
+				return true;
+#endif
+			}
 			const int MAX_LOG_SIZE = 512;
 			char l_cLog[MAX_LOG_SIZE];
 			va_list args;
@@ -19,6 +25,7 @@ namespace seed
 			_vsnprintf_s(l_cLog, _TRUNCATE, i_cFormat, args);
 			va_end(args);
 			printf(l_cLog);
+			printf("\n");
 			return true;
 		}
 	}
