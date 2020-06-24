@@ -11,7 +11,7 @@ namespace seed
 		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor) :
 			m_oPointVisitor(i_oPointVisitor),
 			m_nTileSize(1e6), m_nProcessedPoints(0),
-			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(3.0f)
+			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(10.0f)
 		{
 
 		}
@@ -23,13 +23,11 @@ namespace seed
 
 		int PointsToOSG::Write(const std::string& i_cFilePath)
 		{
-			//seed::ScopeTimer l_oTimer("PointsToOSG", seed::log::Info);
 			seed::progress::UpdateProgress(1);
 			if(seed::utils::CheckOrCreateFolder(i_cFilePath) == false)
 			{
 				return 0;
 			}
-			//seed::utils::CleanFolder(i_cFilePath);
 			std::vector<OSGBPoint> l_lstPoints;
 			l_lstPoints.reserve(this->m_nTileSize);
 			seed::progress::UpdateProgress(10);

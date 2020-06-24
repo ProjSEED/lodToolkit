@@ -83,6 +83,7 @@ namespace seed
 
 			if (_pointSize > 0)
 			{
+				point->setDistanceAttenuation(osg::Vec3(1.0f, 0.0f, 0.01f));
 				point->setSize(_pointSize);
 				set->setMode(GL_POINT_SMOOTH, osg::StateAttribute::ON);
 				set->setAttribute(point);
