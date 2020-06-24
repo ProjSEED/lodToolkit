@@ -1,15 +1,13 @@
 #include "PointsToOSG.h"
-#include "types.h"
 #include <iostream>
-#include <fstream>
 
 int main(int argc, char** argv)
 {
 	if (argc < 3)
 	{
 		std::cout << "-------------------------------------------------------\n"
-			      << "|  Usage: OsgbCreator points_file_path output_path    |\n" 
-			      << "|  Support file format: ply las laz                   |\n" 
+			      << "|  Usage: ToOSGB points_file_path output_path			|\n" 
+			      << "|  Support file format: ply las laz xyz               |\n" 
 				  << "-------------------------------------------------------\n" 
 			      << std::endl;
 		return -1;
@@ -28,5 +26,5 @@ int main(int argc, char** argv)
 	l_points2OSG.Write(argv[2]);
 	std::cout << "processing ended ..." << std::endl;
 
-	system("pause");
+	return 1;
 }

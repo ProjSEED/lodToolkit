@@ -30,7 +30,7 @@ namespace seed
 			// private member functions
 
 			bool LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-				std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints);
+				std::vector<OSGBPoint>& i_lstPoints);
 
 			int ExportOffset(const char* i_cFilePath);
 			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);

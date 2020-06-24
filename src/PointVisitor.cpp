@@ -1,43 +1,10 @@
 #include "PointVisitor.h"
 #include <fstream>
 #include "Ply.h"
-//#include <boost/filesystem.hpp>
 #include "laszip_api.h"
 #include <iostream>
+#include <sstream>
 #include <algorithm>
-
-///////////////////////////// Helper API /////////////////////////////////
-unsigned char Color8Bits(uint16_t color16Bit)
-{
-	return (color16Bit < 256) ? color16Bit : (color16Bit / 65535.0)*255.0;
-};
-
-struct MatchPathSeparator
-{
-	bool operator()(char ch) const
-	{
-		return ch == '/' || ch == '\\';
-	}
-};
-
-std::string getFileName(const std::string & full_path_in)
-{
-	return std::string(
-		std::find_if(full_path_in.rbegin(), full_path_in.rend(),
-			MatchPathSeparator()).base(),
-		full_path_in.end());
-}
-
-// get extension .xxx
-std::string getExtension(const std::string & full_path_in)
-{
-	std::string filename = getFileName(full_path_in);
-	std::size_t found = filename.find_last_of('.');
-	if (found < filename.size())
-		return filename.substr(found);
-	else
-		return std::string();
-}
 
 //////////////////////////// Points Reader ///////////////////////
 namespace seed
@@ -51,15 +18,15 @@ namespace seed
 			~PointsReader() {}
 			virtual bool Init() = 0;
 			virtual bool ReadNextPoint(OSGBPoint& point) = 0;
-			int GetPointsCount() { return m_pointCount; }
-			int GetCurrentPointId() { return m_currentPointId; }
+			size_t GetPointsCount() { return m_pointCount; }
+			size_t GetCurrentPointId() { return m_currentPointId; }
 			Point3F GetOffset() { return m_offset; } // 将读取到的第一个点设为整体offset
 			std::string GetSRS() { return m_srsName; }
 
 		protected:
 			std::string m_filename;
-			int m_pointCount;
-			int m_currentPointId;
+			size_t m_pointCount;
+			size_t m_currentPointId;
 			Point3F m_offset;
 			std::string m_srsName;
 		};
@@ -202,9 +169,9 @@ namespace seed
 				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor;
 
 				auto& rgb = m_pointRead->rgb;
-				pt.I[0] = Color8Bits(rgb[0]);
-				pt.I[1] = Color8Bits(rgb[1]);
-				pt.I[2] = Color8Bits(rgb[2]);
+				pt.I[0] = utils::Color8Bits(rgb[0]);
+				pt.I[1] = utils::Color8Bits(rgb[1]);
+				pt.I[2] = utils::Color8Bits(rgb[2]);
 
 				m_currentPointId++;
 				return true;
@@ -226,18 +193,14 @@ namespace seed
 			PlyFile *m_plyFile;
 			int m_nrElems;
 			char **m_elist;
-			bool m_foundNormals;
 			bool m_foundColors;
-			bool m_foundClasses;
 			bool m_foundVertices;
 		};
 
 		PlyReader::PlyReader(const std::string& filename) :
 			PointsReader(filename),
 			m_foundVertices(true),
-			m_foundNormals(true),
-			m_foundColors(true),
-			m_foundClasses(true)
+			m_foundColors(true)
 		{}
 
 		PlyReader::~PlyReader()
@@ -267,7 +230,6 @@ namespace seed
 
 		bool PlyReader::Init()
 		{
-			size_t l_nNumOfPts;
 			int fileType;
 			float version;
 			PlyProperty** plist;
@@ -314,37 +276,22 @@ namespace seed
 				{
 					m_pointCount = num_elems;
 					for (int j = 0; j < 3; j++)//至少得有点
-						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex< float >::ReadProperties[j]))) // 读取 xyz
+						if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex< float >::ReadProperties[j]))) // 读取 xyz
 						{
 							seed::log::DumpLog(seed::log::Critical, "Read Vertex failed!");
 							return false;
 						}
-					//
-					if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[3]))) // 读取 Class
-					{
-						seed::log::DumpLog(seed::log::Critical, "Read class failed!");
-						m_foundClasses = false;
-					}
-
-					//法线 可选
-					for (int j = 4; j < 7; j++)
-						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j]))) // 读取 Normal
-						{
-							seed::log::DumpLog(seed::log::Critical, "Read normal failed!");
-							m_foundNormals = false;
-							break;
-						}
 
 					//颜色 可选
-					for (int j = 7; j < 10; j++)
-						if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j])))
+					for (int j = 3; j < 6; j++)
+						if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex<float>::ReadProperties[j])))
 						{
 							//seed::log::DumpLog(seed::log::Critical, "Read file %s failed(no color)!", i_filePath);
 							m_foundColors = false;
 						}
 					if (!m_foundColors)
-						for (int j = 10; j < 13; j++)
-							if (!ply_get_property(m_plyFile, elem_name, &(PlyValueOrientedColorVertex<float>::ReadProperties[j])))
+						for (int j = 6; j < 9; j++)
+							if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex<float>::ReadProperties[j])))
 							{
 								seed::log::DumpLog(seed::log::Critical, "Read color failed!");
 								break;
@@ -384,18 +331,98 @@ namespace seed
 			for (int k = 0; k < 3; ++k)
 			{
 				point.P[k] = l_oVertex.point[k] - m_offset[k];
-				if (m_foundNormals)
-					point.Normal[k] = l_oVertex.normal[k];
 				if (m_foundColors)
-					point.I[k] = Color8Bits(l_oVertex.color[k]);
+					point.I[k] = utils::Color8Bits(l_oVertex.color[k]);
 			}
-			if (m_foundClasses)
-				point.Class = l_oVertex.value;
 
 			m_currentPointId++;
 			return true;
 		}
 
+		////////////////////////// PLY Reader /////////////////////////////////
+		class XYZRGBReader :public PointsReader
+		{
+		public:
+			XYZRGBReader(const std::string& filename);
+			bool Init() override;
+			~XYZRGBReader();
+			bool ReadNextPoint(OSGBPoint& point) override;
+
+		private:
+			std::ifstream m_xyzFile;
+		};
+
+		XYZRGBReader::XYZRGBReader(const std::string& filename) :
+			PointsReader(filename)
+		{
+
+		}
+
+		XYZRGBReader::~XYZRGBReader()
+		{
+			m_xyzFile.close();
+		}
+
+		bool XYZRGBReader::Init()
+		{
+			m_xyzFile.open(m_filename);
+			if (m_xyzFile.bad())
+			{
+				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", m_filename);
+				return false;
+			}
+			std::string line;
+			while (std::getline(m_xyzFile, line).good())
+			{
+				++m_pointCount;
+			}
+			m_xyzFile.clear();
+			m_xyzFile.seekg(0, m_xyzFile.beg);
+			if (!m_pointCount)
+			{
+				seed::log::DumpLog(seed::log::Critical, "No vertice in file %s!", m_filename);
+				return false;
+			}
+			return true;
+		}
+
+		bool XYZRGBReader::ReadNextPoint(OSGBPoint& point)
+		{
+			if (m_currentPointId >= m_pointCount) return false;
+			std::string line;
+			if (!std::getline(m_xyzFile, line).good())
+			{
+				return false;
+			}
+			int color;
+			std::stringstream ss;
+			ss << line;
+			ss >> point.P[0];
+			ss >> point.P[1];
+			ss >> point.P[2];
+			ss >> color;
+			point.I[0] = utils::Color8Bits(color);
+			ss >> color;
+			point.I[1] = utils::Color8Bits(color);
+			ss >> color;
+			point.I[2] = utils::Color8Bits(color);
+
+			// init offset
+			if (m_currentPointId == 0)
+			{
+				m_offset[0] = point.P[0];
+				m_offset[1] = point.P[1];
+				m_offset[2] = point.P[2];
+			}
+
+			for (int k = 0; k < 3; ++k)
+			{
+				point.P[k] = point.P[k] - m_offset[k];
+			}
+
+			m_currentPointId++;
+			return true;
+		}
 
 		////////////////////////// Point Visitor /////////////////////////////////
 		PointVisitor::PointVisitor() :
@@ -405,12 +432,14 @@ namespace seed
 
 		bool PointVisitor::ReadFile(const std::string& i_filePath)
 		{
-			std::string ext = getExtension(i_filePath);
+			std::string ext = utils::getExtension(i_filePath);
 			std::cout << "file format: ";
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
 			else if (ext == ".laz" || ext == ".las")
 				m_pointsReader.reset(new LazReader(i_filePath));
+			else if(ext == ".xyz")
+				m_pointsReader.reset(new XYZRGBReader(i_filePath));
 			else
 			{
 				std::cout << "invalid" << std::endl;

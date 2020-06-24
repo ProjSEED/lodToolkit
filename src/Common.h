@@ -35,13 +35,15 @@ namespace seed
 	namespace progress
 	{
 		void UpdateProgress(int value);
-		void UpdateProgressLabel(const std::string& label);
 	}
 
 	namespace utils
 	{
 		bool CheckOrCreateFolder(const std::string& i_strDir);
 		bool FileExists(const std::string& i_strPath);
+		unsigned char Color8Bits(uint16_t color16Bit);
+		std::string getFileName(const std::string & full_path_in);
+		std::string getExtension(const std::string & full_path_in);
 	}
 
 	struct Point3F
@@ -95,30 +97,18 @@ namespace seed
 	};
 
 	template <class IntentT, int Dim = 3>
-	class PointXYZINormalClassT
+	class PointXYZIT
 	{
 	public:
-		PointXYZINormalClassT() :
-			P(0,0,0),
-			Normal(0,0,0),
-			Class(0)
+		PointXYZIT() :
+			P(0,0,0)
 		{
 			I.Fill(0);
 		}
 
 		Point3F P;
-		Point3F Normal;
 		Vec<IntentT, Dim>	I;
-		int	Class;
 	};
+	typedef seed::PointXYZIT<IntentType, IntenDim> OSGBPoint;
 
-	template <class IntentT, int Dim = 3>
-	class DensePointT
-	{
-	public:
-		Point3F P;
-		Point3F Normal;
-		Vec<IntentT, Dim>	I;
-		int	Class;
-	};
 }

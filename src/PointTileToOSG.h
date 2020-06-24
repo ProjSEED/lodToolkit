@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "Common.h"
 
 #include <osg/BoundingBox>
 #include <osg/ref_ptr>
@@ -67,8 +67,8 @@ namespace seed
 				_pointSize = pointSize;
 			}
 
-			bool Generate(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
-				const std::string saveFilePath);
+			bool Generate(const std::vector<OSGBPoint> *pointSet,
+				const std::string saveFilePath, osg::BoundingBox& boundingBoxGlobal);
 		protected:
 			unsigned int _maxTreeLevel;
 			unsigned int _maxPointNumPerOneNode;
@@ -76,14 +76,14 @@ namespace seed
 			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 			float _pointSize;
 
-			bool BuildNode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+			bool BuildNode(const std::vector<OSGBPoint> *pointSet,
 				std::vector<unsigned int> &pointIndex,
 				osg::BoundingBox boundingBox,
 				const std::string saveFilePath,
 				unsigned int level,
 				unsigned int childNo);
 
-			osg::Geode *MakeNodeGeode(const std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> *pointSet,
+			osg::Geode *MakeNodeGeode(const std::vector<OSGBPoint> *pointSet,
 				std::vector<unsigned int> &pointIndex);
 		};
 

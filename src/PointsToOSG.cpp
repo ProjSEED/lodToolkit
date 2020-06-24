@@ -3,8 +3,6 @@
 
 #include "tinyxml.h" 
 
-#include "types.h"
-
 namespace seed
 {
 	namespace io
@@ -13,7 +11,7 @@ namespace seed
 		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor) :
 			m_oPointVisitor(i_oPointVisitor),
 			m_nTileSize(1e6), m_nProcessedPoints(0),
-			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(0.4f)
+			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(2.0f)
 		{
 
 		}
@@ -25,18 +23,14 @@ namespace seed
 
 		int PointsToOSG::Write(const char* i_cFilePath)
 		{
-			//QString l_strModule = ("Generate dense cloud LOD");
-			//seed::progress::UpdateProgressLabel(l_strModule);
-			//seed::ScopeTimer l_oTimer(l_strModule, seed::log::Info);
+			//seed::ScopeTimer l_oTimer("PointsToOSG", seed::log::Info);
 			seed::progress::UpdateProgress(1);
 			if(seed::utils::CheckOrCreateFolder(i_cFilePath) == false)
 			{
 				return 0;
 			}
 			//seed::utils::CleanFolder(i_cFilePath);
-			//std::shared_ptr<PointVisitor> l_oPointVisitor(new seed::io::PointVisitor(true));
-			//l_oPointVisitor->Reset(true);
-			std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>> l_lstPoints;
+			std::vector<OSGBPoint> l_lstPoints;
 			l_lstPoints.reserve(this->m_nTileSize);
 			seed::progress::UpdateProgress(10);
 
@@ -45,9 +39,9 @@ namespace seed
 			std::string l_strOutPutDirPath(i_cFilePath);
 			std::vector<std::string> l_lstTileFiles;
 			size_t l_nTileCount = std::round(m_oPointVisitor->GetNumOfPoints() / (double)m_nTileSize);
+			osg::BoundingBox boundingBoxGlobal;
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
-				std::cout << "process" << l_nTileID+1 << "/" << l_nTileCount << std::endl;
 				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>();
 				lodGenerator->SetParameter(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio);
 				lodGenerator->SetPointSize(this->m_fPointSize);
@@ -55,7 +49,7 @@ namespace seed
 				std::string outPutFileFullName;
 				char strBlock[16];
 				itoa(l_nTileID, strBlock, 10);
-				outPutFileFullName = l_strOutPutDirPath + "\\" + std::string(strBlock);
+				outPutFileFullName = l_strOutPutDirPath + "/" + std::string(strBlock);
 				if (seed::utils::CheckOrCreateFolder(outPutFileFullName) == false)
 				{
 					return 0;
@@ -63,7 +57,7 @@ namespace seed
 
 				try
 				{
-					lodGenerator->Generate(&l_lstPoints, outPutFileFullName);
+					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, boundingBoxGlobal);
 					this->m_nProcessedPoints += l_lstPoints.size();
 				}
 				catch (...)
@@ -72,9 +66,9 @@ namespace seed
 					return 0;
 				}
 
-				std::string lodName = std::string(strBlock) + "\\" + "L0_0_tile.osgb";
+				std::string lodName = std::string(strBlock) + "/" + "L0_0_tile.osgb";
 
-				std::string fullPath = l_strOutPutDirPath + "\\" + lodName;
+				std::string fullPath = l_strOutPutDirPath + "/" + lodName;
 				if (seed::utils::FileExists(fullPath))
 				{
 					l_lstTileFiles.push_back(lodName);
@@ -91,10 +85,14 @@ namespace seed
 			/////////////////////////////////////////////////////////////////////////
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate root node...");
-				std::string mainName = l_strOutPutDirPath + "/DenseCloud.osgb";
+				std::string mainName = l_strOutPutDirPath + "/Root.osgb";
 				osg::ref_ptr<osg::MatrixTransform> pRoot = new osg::MatrixTransform();
-				//pRoot->setMatrix(osg::Matrix::translate(l_oOffset.x, l_oOffset.y, l_oOffset.z));
+				auto l_oOffset = m_oPointVisitor->GetOffset();
+				pRoot->setMatrix(osg::Matrix::translate(l_oOffset.X(), l_oOffset.Y(), l_oOffset.Z()));
 				osg::ProxyNode* pProxyNode = new osg::ProxyNode();
+				pProxyNode->setCenter(boundingBoxGlobal.center());
+				pProxyNode->setRadius(boundingBoxGlobal.radius());
+				pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::DEFER_LOADING_TO_DATABASE_PAGER);
 				for (int i = 0; i < l_lstTileFiles.size(); i++) {
 					pProxyNode->setFileName(i, l_lstTileFiles[i]);
 				}
@@ -102,7 +100,6 @@ namespace seed
 				osg::ref_ptr<osgDB::Options> pOpt = new osgDB::Options("precision=15");
 				try
 				{
-					//Ð´ÈëÎÄ¼þ;
 					if (osgDB::writeNodeFile(*pRoot, mainName, pOpt) == false)
 					{
 						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", mainName.c_str());
@@ -121,7 +118,7 @@ namespace seed
 		}
 
 		bool PointsToOSG::LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-			std::vector<seed::PointXYZINormalClassT<IntentType, IntenDim>>& i_lstPoints)
+			std::vector<OSGBPoint>& i_lstPoints)
 		{
 			i_lstPoints.clear();
 			size_t l_nCount = 0;
@@ -133,7 +130,7 @@ namespace seed
 				l_nTileSize = i_oPointVisitor->GetNumOfPoints() - this->m_nProcessedPoints;
 			}
 
-			seed::PointXYZINormalClassT<IntentType, IntenDim> l_oPoint;
+			OSGBPoint l_oPoint;
 			while (l_nCount < l_nTileSize)
 			{
 				int l_nFlag = i_oPointVisitor->NextPoint(l_oPoint);
@@ -177,10 +174,13 @@ namespace seed
 
 			TiXmlElement * Offset = new TiXmlElement("Offset");
 			SRS->LinkEndChild(Offset);
-			auto value_offset = m_oPointVisitor->GetOffset();
-			AddLeafNode(Offset, "x", value_offset[0]);
-			AddLeafNode(Offset, "y", value_offset[1]);
-			AddLeafNode(Offset, "z", value_offset[2]);
+			//auto value_offset = m_oPointVisitor->GetOffset();
+			//AddLeafNode(Offset, "x", value_offset[0]);
+			//AddLeafNode(Offset, "y", value_offset[1]);
+			//AddLeafNode(Offset, "z", value_offset[2]);
+			AddLeafNode(Offset, "x", 0);
+			AddLeafNode(Offset, "y", 0);
+			AddLeafNode(Offset, "z", 0);
 
 			xmlDoc.InsertEndChild(elmRoot);
 			xmlDoc.SaveFile();
