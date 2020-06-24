@@ -206,12 +206,19 @@ namespace seed
 			sprintf(tmpRightPageName, "%s%d%s%d%s", "L", level + 1, "_", childNo * 2 + 1, "_tile.osgb");
 			rightPageName.assign(tmpRightPageName);
 			
-			double rangeValue = boundingBox.radius()*_lodRatio;
+			double rangeRatio = 1;
+			for (int l = 0; l < level; ++l)
+			{
+				rangeRatio *= 2;
+			}
+			double rangeValue = boundingBox.radius()*_lodRatio*rangeRatio;
+			leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			leftPageNode->setFileName(0, leftPageName);
-			leftPageNode->setRange(0, 0, rangeValue);
+			leftPageNode->setRange(0, rangeValue, FLT_MAX);
 			leftPageNode->setCenter(leftBoundingBox.center());
+			rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			rightPageNode->setFileName(0, rightPageName);
-			rightPageNode->setRange(0, 0, rangeValue);
+			rightPageNode->setRange(0, rangeValue, FLT_MAX);
 			rightPageNode->setCenter(rightBoundingBox.center());
 
 			mt->addChild(nodeGeode.get());

@@ -11,7 +11,7 @@ namespace seed
 		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor) :
 			m_oPointVisitor(i_oPointVisitor),
 			m_nTileSize(1e6), m_nProcessedPoints(0),
-			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(8.0), m_fPointSize(10.0f)
+			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(0.5), m_fPointSize(10.0f)
 		{
 
 		}
