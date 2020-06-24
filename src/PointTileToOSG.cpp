@@ -32,7 +32,7 @@ namespace seed
 		}
 
 		bool PointTileToOSG::Generate(const std::vector<OSGBPoint> *pointSet,
-			const std::string saveFilePath, osg::BoundingBox& boundingBoxGlobal)
+			const std::string& saveFilePath, const std::string& strBlock, osg::BoundingBox& boundingBoxGlobal)
 		{
 			std::vector<unsigned int> pointIndex;
 			osg::BoundingBox boundingBox;
@@ -45,7 +45,7 @@ namespace seed
 			boundingBoxGlobal.expandBy(boundingBox);
 			try
 			{
-				BuildNode(pointSet, pointIndex, boundingBox, saveFilePath, 0, 0);
+				BuildNode(pointSet, pointIndex, boundingBox, saveFilePath, strBlock, 0, 0);
 				pointIndex.swap(std::vector<unsigned int>());
 			}
 			catch (...)
@@ -102,7 +102,8 @@ namespace seed
 		bool PointTileToOSG::BuildNode(const std::vector<OSGBPoint> *pointSet,
 			std::vector<unsigned int> &pointIndex,
 			osg::BoundingBox boundingBox,
-			const std::string saveFilePath,
+			const std::string& saveFilePath,
+			const std::string& strBlock,
 			unsigned int level,
 			unsigned int childNo)
 		{
@@ -119,10 +120,17 @@ namespace seed
 			osg::ref_ptr<osg::PagedLOD>  leftPageNode = new osg::PagedLOD;
 			osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
 
-			char tmpSaveFileName[100];
-			sprintf(tmpSaveFileName, "%s%d%s%d%s", "/L", level, "_", childNo, "_tile.osgb");
-			saveFileName.assign(tmpSaveFileName);
-			saveFileName = saveFilePath + saveFileName;
+			if (level == 0)
+			{
+				saveFileName = saveFilePath + "/" + strBlock + ".osgb";
+			}
+			else
+			{
+				char tmpSaveFileName[100];
+				sprintf(tmpSaveFileName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level, "_", childNo, ".osgb");
+				saveFileName.assign(tmpSaveFileName);
+				saveFileName = saveFilePath + saveFileName;
+			}
 
 			if (pointIndex.size() < _maxPointNumPerOneNode || level >= _maxTreeLevel)
 			{
@@ -201,13 +209,13 @@ namespace seed
 			}
 
 			char tmpLeftPageName[100], tmpRightPageName[100];
-			sprintf(tmpLeftPageName, "%s%d%s%d%s", "L", level + 1, "_", childNo * 2, "_tile.osgb");
+			sprintf(tmpLeftPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2, ".osgb");
 			leftPageName.assign(tmpLeftPageName);
-			sprintf(tmpRightPageName, "%s%d%s%d%s", "L", level + 1, "_", childNo * 2 + 1, "_tile.osgb");
+			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, ".osgb");
 			rightPageName.assign(tmpRightPageName);
 			
 			double rangeRatio = 1;
-			for (int l = 0; l < level; ++l)
+			for (unsigned int l = 0; l < level; ++l)
 			{
 				rangeRatio *= 2;
 			}
@@ -226,14 +234,14 @@ namespace seed
 			// left
 			if (leftPointSetIndex.size())
 			{
-				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, saveFilePath, level + 1, childNo * 2);
+				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, saveFilePath, strBlock, level + 1, childNo * 2);
 				leftPointSetIndex.swap(std::vector<unsigned int>());
 				mt->addChild(leftPageNode.get());
 			}
 			// right
 			if (rightPointSetIndex.size())
 			{
-				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, saveFilePath, level + 1, childNo * 2 + 1);
+				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, saveFilePath, strBlock, level + 1, childNo * 2 + 1);
 				rightPointSetIndex.swap(std::vector<unsigned int>());
 				mt->addChild(rightPageNode.get());
 			}

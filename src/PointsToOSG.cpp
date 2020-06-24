@@ -28,13 +28,17 @@ namespace seed
 			{
 				return 0;
 			}
+			std::string filePathData = i_cFilePath + "/Data";
+			if (seed::utils::CheckOrCreateFolder(filePathData) == false)
+			{
+				return 0;
+			}
 			std::vector<OSGBPoint> l_lstPoints;
 			l_lstPoints.reserve(this->m_nTileSize);
 			seed::progress::UpdateProgress(10);
 
 			this->m_nProcessedPoints = 0;
 			size_t l_nTileID = 0;
-			std::string l_strOutPutDirPath(i_cFilePath);
 			std::vector<std::string> l_lstTileFiles;
 			size_t l_nTileCount = std::round(m_oPointVisitor->GetNumOfPoints() / (double)m_nTileSize);
 			osg::BoundingBox boundingBoxGlobal;
@@ -43,9 +47,11 @@ namespace seed
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
 				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize);
 				std::string outPutFileFullName;
-				char strBlock[16];
-				itoa(l_nTileID, strBlock, 10);
-				outPutFileFullName = l_strOutPutDirPath + "/" + std::string(strBlock);
+				char cBlock[16];
+				itoa(l_nTileID, cBlock, 10);
+				std::string strBlock(cBlock);
+				strBlock = "Tile_+" + strBlock;
+				outPutFileFullName = filePathData + "/" + strBlock;
 				if (seed::utils::CheckOrCreateFolder(outPutFileFullName) == false)
 				{
 					return 0;
@@ -53,7 +59,7 @@ namespace seed
 
 				try
 				{
-					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, boundingBoxGlobal);
+					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, strBlock, boundingBoxGlobal);
 					this->m_nProcessedPoints += l_lstPoints.size();
 				}
 				catch (...)
@@ -62,12 +68,12 @@ namespace seed
 					return 0;
 				}
 
-				std::string lodName = std::string(strBlock) + "/" + "L0_0_tile.osgb";
+				std::string lodName = strBlock + "/" + strBlock + ".osgb";
 
-				std::string fullPath = l_strOutPutDirPath + "/" + lodName;
+				std::string fullPath = filePathData + "/" + lodName;
 				if (seed::utils::FileExists(fullPath))
 				{
-					l_lstTileFiles.push_back(lodName);
+					l_lstTileFiles.push_back("./Data/" + lodName);
 				}
 
 				l_nTileID++;
@@ -81,7 +87,7 @@ namespace seed
 			/////////////////////////////////////////////////////////////////////////
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate root node...");
-				std::string mainName = l_strOutPutDirPath + "/Root.osgb";
+				std::string mainName = i_cFilePath + "/Root.osgb";
 				osg::ref_ptr<osg::MatrixTransform> pRoot = new osg::MatrixTransform();
 				auto l_oOffset = m_oPointVisitor->GetOffset();
 				pRoot->setMatrix(osg::Matrix::translate(l_oOffset.X(), l_oOffset.Y(), l_oOffset.Z()));
@@ -108,7 +114,7 @@ namespace seed
 			}
 
 			/////////////////////////////////////////////////////////////////////////
-			std::string xmlName = l_strOutPutDirPath + "/SRS.xml";
+			std::string xmlName = i_cFilePath + "/metadata.xml";
 			this->ExportSRS(xmlName);
 			seed::progress::UpdateProgress(100);
 			return 1;
@@ -161,18 +167,18 @@ namespace seed
 			TiXmlDeclaration Declaration("1.0", "utf-8", "");
 			xmlDoc.InsertEndChild(Declaration);
 
-			TiXmlElement elmRoot("PointCloud");
-			elmRoot.SetAttribute("Version", "1.0");
+			TiXmlElement elmRoot("ModelMetadata");
+			elmRoot.SetAttribute("Version", "1");
 
 			TiXmlElement * SRS = new TiXmlElement("SRS");
 			elmRoot.LinkEndChild(SRS);
 			AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
 
-			TiXmlElement * Offset = new TiXmlElement("Offset");
-			SRS->LinkEndChild(Offset);
-			AddLeafNode(Offset, "x", 0);
-			AddLeafNode(Offset, "y", 0);
-			AddLeafNode(Offset, "z", 0);
+			AddLeafNode(&elmRoot, "SRSOrigin", "0, 0, 0");
+
+			TiXmlElement * Texture = new TiXmlElement("Texture");
+			elmRoot.LinkEndChild(Texture);
+			AddLeafNode(Texture, "ColorSource", "Visible");
 
 			xmlDoc.InsertEndChild(elmRoot);
 			xmlDoc.SaveFile();

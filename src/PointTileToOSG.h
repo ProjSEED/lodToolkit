@@ -53,7 +53,7 @@ namespace seed
 			}
 
 			bool Generate(const std::vector<OSGBPoint> *pointSet,
-				const std::string saveFilePath, osg::BoundingBox& boundingBoxGlobal);
+				const std::string& saveFilePath, const std::string& strBlock, osg::BoundingBox& boundingBoxGlobal);
 
 		protected:
 			unsigned int _maxTreeLevel;
@@ -66,7 +66,8 @@ namespace seed
 			bool BuildNode(const std::vector<OSGBPoint> *pointSet,
 				std::vector<unsigned int> &pointIndex,
 				osg::BoundingBox boundingBox,
-				const std::string saveFilePath,
+				const std::string& saveFilePath,
+				const std::string& strBlock,
 				unsigned int level,
 				unsigned int childNo);
 
