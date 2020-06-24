@@ -1,8 +1,6 @@
 #include "PointsToOSG.h"
 #include "PointTileToOSG.h"
 
-//#include "tgPointVisitor.h"
-
 #include "tinyxml.h" 
 
 #include "types.h"
