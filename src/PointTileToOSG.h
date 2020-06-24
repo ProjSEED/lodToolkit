@@ -11,10 +11,10 @@
 #include <osg/Vec3>
 #include <osg/Vec4>
 #include <osg/MatrixTransform>
-#include <osgDB/ReaderWriter>
-#include <osgDB/WriteFile>
 #include <osg/LineWidth>
 #include <osg/Point>
+#include <osgDB/ReaderWriter>
+#include <osgDB/WriteFile>
 #include <osgDB/FileUtils>
 
 namespace seed
@@ -41,40 +41,27 @@ namespace seed
 		class PointTileToOSG
 		{
 		public:
-			PointTileToOSG()
-			{
-				_maxTreeLevel = 20;
-				_maxPointNumPerOneNode = 20000;
-				_lodRatio = 6;
-				_pointSize = -1;
-				//_translate = osg::Matrix::translate(0.0,0.0,0.0);
-			}
 			PointTileToOSG(unsigned int maxTreeLevel,
 				unsigned int maxPointNumPerOneNode,
-				double lodRatio)
+				double lodRatio,
+				float pointSize)
 			{
 				_maxTreeLevel = maxTreeLevel;
 				_maxPointNumPerOneNode = maxPointNumPerOneNode;
 				_lodRatio = lodRatio;
-			}
-
-			bool SetParameter(unsigned int maxTreeLevel,
-				unsigned int maxPointNumPerOneNode,
-				double _lodRatio);
-
-			void SetPointSize(float pointSize)
-			{
 				_pointSize = pointSize;
 			}
 
 			bool Generate(const std::vector<OSGBPoint> *pointSet,
 				const std::string saveFilePath, osg::BoundingBox& boundingBoxGlobal);
+
 		protected:
 			unsigned int _maxTreeLevel;
 			unsigned int _maxPointNumPerOneNode;
 			double _lodRatio;
-			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 			float _pointSize;
+
+			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 
 			bool BuildNode(const std::vector<OSGBPoint> *pointSet,
 				std::vector<unsigned int> &pointIndex,

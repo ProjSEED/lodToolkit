@@ -43,10 +43,7 @@ namespace seed
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
-				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>();
-				lodGenerator->SetParameter(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio);
-				lodGenerator->SetPointSize(this->m_fPointSize);
-
+				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize);
 				std::string outPutFileFullName;
 				char strBlock[16];
 				itoa(l_nTileID, strBlock, 10);

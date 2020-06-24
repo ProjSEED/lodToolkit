@@ -4,17 +4,6 @@ namespace seed
 {
 	namespace io
 	{
-
-		bool PointTileToOSG::SetParameter(unsigned int maxTreeLevel,
-			unsigned int maxPointNumPerOneNode,
-			double lodRatio)
-		{
-			_maxTreeLevel = maxTreeLevel;
-			_maxPointNumPerOneNode = maxPointNumPerOneNode;
-			_lodRatio = lodRatio;
-			return true;
-		}
-
 		AxisInfo PointTileToOSG::FindMaxAxis(osg::BoundingBox boundingBox)
 		{
 			AxisInfo maxAxisInfo;
@@ -61,7 +50,7 @@ namespace seed
 			}
 			catch (...)
 			{
-				std::cout << "KDTree generate error.." << std::endl;
+				seed::log::DumpLog(seed::log::Critical, "KDTree generate error!");
 				return false;
 			}
 			return true;
@@ -75,7 +64,7 @@ namespace seed
 				return 0;
 			}
 			osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-			osg::ref_ptr<osg::Geometry> galaxy = new osg::Geometry;
+			osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
 			osg::ref_ptr<osg::Vec3Array> pointArray = new osg::Vec3Array;
 			osg::ref_ptr<osg::Vec4Array> colorArray = new osg::Vec4Array;
 			osg::ref_ptr<osg::StateSet> set = new osg::StateSet;
@@ -97,15 +86,15 @@ namespace seed
 				point->setSize(_pointSize);
 				set->setMode(GL_POINT_SMOOTH, osg::StateAttribute::ON);
 				set->setAttribute(point);
-				galaxy->setStateSet(set);
+				geometry->setStateSet(set);
 			}
-			galaxy->setVertexArray(pointArray.get());
-			galaxy->setColorArray(colorArray.get());
-			galaxy->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, pointIndex.size()));
-			galaxy->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+			geometry->setVertexArray(pointArray.get());
+			geometry->setColorArray(colorArray.get());
+			geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, pointIndex.size()));
+			geometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
-			galaxy->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-			geode->addDrawable(galaxy.get());
+			geometry->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+			geode->addDrawable(geometry.get());
 			return geode.release();
 		}
 
@@ -130,18 +119,15 @@ namespace seed
 			osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
 
 			char tmpSaveFileName[100];
-			sprintf(tmpSaveFileName, "%s%d%s%d%s", "\\L", level, "_", childNo, "_tile.osgb");
+			sprintf(tmpSaveFileName, "%s%d%s%d%s", "/L", level, "_", childNo, "_tile.osgb");
 			saveFileName.assign(tmpSaveFileName);
 			saveFileName = saveFilePath + saveFileName;
-			//std::cout << "Start build node : " << saveFileName << std::endl;
 
 			if (pointIndex.size() < _maxPointNumPerOneNode || level >= _maxTreeLevel)
 			{
-				//std::cout << "Start make Leaf node.." << std::endl;
 				nodeGeode = MakeNodeGeode(pointSet, pointIndex);
 				try
 				{
-					//写入文件;
 					if (osgDB::writeNodeFile(*(nodeGeode.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
 					{
 						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
@@ -151,7 +137,6 @@ namespace seed
 				{
 					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 				}
-				//std::cout << "Make Leaf node complete.." << std::endl;
 				return true;
 			}
 
@@ -160,7 +145,6 @@ namespace seed
 
 			rightBoundingBox.init();
 			leftBoundingBox.init();
-			//std::cout << "Divide aixs type : 0 for X,1 for Y,2 for Z :" << maxAxisInfo.aixType << std::endl;
 
 			leftBoundingBox = boundingBox;
 			rightBoundingBox = boundingBox;
@@ -204,31 +188,24 @@ namespace seed
 					}
 				}
 			}
-			//std::cout << "Start Recursive,Left points : " << leftPointSetIndex.size() << " , Right points : " << rightPointSetIndex.size() << std::endl;
-			//std::cout << "Start make node geode.." << std::endl;
 			try
 			{
-				//建立该节点的Geode;
 				nodeGeode = MakeNodeGeode(pointSet, selfPointSetIndex);
-				//释放该节点的index集合数据;
 				selfPointSetIndex.swap(std::vector<unsigned int>());
 			}
 			catch (...)
 			{
-				std::cout << "Make self node geode error.." << std::endl;
+				seed::log::DumpLog(seed::log::Critical, "Make self node geode error!", saveFileName.c_str());
 				return false;
 			}
-			//std::cout << "Make node geode complete.." << std::endl;
-			//拼写左右PageLod节点;
+
 			char tmpLeftPageName[100], tmpRightPageName[100];
 			sprintf(tmpLeftPageName, "%s%d%s%d%s", "L", level + 1, "_", childNo * 2, "_tile.osgb");
 			leftPageName.assign(tmpLeftPageName);
 			sprintf(tmpRightPageName, "%s%d%s%d%s", "L", level + 1, "_", childNo * 2 + 1, "_tile.osgb");
 			rightPageName.assign(tmpRightPageName);
-			//设定PageLod节点的可视距离;
+			
 			double rangeValue = boundingBox.radius()*_lodRatio;
-			//double rangeValue = FLT_MAX;
-			//设置PageLod节点信息;
 			leftPageNode->setFileName(0, leftPageName);
 			leftPageNode->setRange(0, 0, rangeValue);
 			leftPageNode->setCenter(leftBoundingBox.center());
@@ -255,7 +232,6 @@ namespace seed
 
 			try
 			{
-				//写入文件;
 				if (osgDB::writeNodeFile(*(mt.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
 				{
 					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
@@ -265,10 +241,7 @@ namespace seed
 			{
 				seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
 			}
-			//释放selfPointIndex;
 			selfPointSetIndex.swap(std::vector<unsigned int>());
-
-			//结束;
 			return true;
 		}
 	}
