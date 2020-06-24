@@ -113,7 +113,7 @@ namespace seed
 
 			/////////////////////////////////////////////////////////////////////////
 			std::string xmlName = l_strOutPutDirPath + "/SRS.xml";
-			this->ExportOffset(xmlName.c_str());
+			this->ExportSRS(xmlName.c_str());
 			return 1;
 		}
 
@@ -158,7 +158,7 @@ namespace seed
 			}
 		}
 
-		int PointsToOSG::ExportOffset(const char* i_cFilePath)
+		int PointsToOSG::ExportSRS(const char* i_cFilePath)
 		{
 			TiXmlDocument xmlDoc(i_cFilePath);
 			TiXmlDeclaration Declaration("1.0", "utf-8", "");
@@ -170,14 +170,9 @@ namespace seed
 			TiXmlElement * SRS = new TiXmlElement("SRS");
 			elmRoot.LinkEndChild(SRS);
 			AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
-			//AddLeafNode(SRS, "Name", seed::GeoRefDB::GetInstance()->GetCurrentGeoRef().ToName().c_str());
 
 			TiXmlElement * Offset = new TiXmlElement("Offset");
 			SRS->LinkEndChild(Offset);
-			//auto value_offset = m_oPointVisitor->GetOffset();
-			//AddLeafNode(Offset, "x", value_offset[0]);
-			//AddLeafNode(Offset, "y", value_offset[1]);
-			//AddLeafNode(Offset, "z", value_offset[2]);
 			AddLeafNode(Offset, "x", 0);
 			AddLeafNode(Offset, "y", 0);
 			AddLeafNode(Offset, "z", 0);

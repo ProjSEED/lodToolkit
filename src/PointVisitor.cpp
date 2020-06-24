@@ -162,7 +162,6 @@ namespace seed
 					m_offset[2] = m_laszipHeader->z_offset;
 				}
 
-				//laszip_dll_struct* pointer = (laszip_dll_struct*)laszip_reader;
 				// add offset and scale to coords
 				pt.P[0] = m_pointRead->X * m_laszipHeader->x_scale_factor;
 				pt.P[1] = m_pointRead->Y * m_laszipHeader->y_scale_factor;
