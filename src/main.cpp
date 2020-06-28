@@ -2,7 +2,7 @@
 #include "CmdParser/cmdparser.hpp"
 
 void configure_parser(cli::Parser& parser) {
-	parser.set_required<std::string>("i", "input", "input file path");
+	parser.set_required<std::string>("i", "input", "input file path, <ply/las/laz/xyz>");
 	parser.set_required<std::string>("o", "output", "output dir path");
 	parser.set_optional<int>("t", "tileSize", 1000000, "max number of point in one tile");
 	parser.set_optional<int>("n", "nodeSize", 5000, "max number of point in one node");
