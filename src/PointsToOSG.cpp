@@ -8,10 +8,13 @@ namespace seed
 	namespace io
 	{
 
-		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor) :
+		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor,
+			int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
+			float i_dLodRatio, float i_fPointSize) :
 			m_oPointVisitor(i_oPointVisitor),
-			m_nTileSize(1e6), m_nProcessedPoints(0),
-			m_nMaxTreeDepth(99), m_nMaxPointNumPerOneNode(5e3), m_dLodRatio(0.5), m_fPointSize(10.0f)
+			m_nProcessedPoints(0),
+			m_nTileSize(i_nTileSize), m_nMaxPointNumPerOneNode(i_nMaxPointNumPerOneNode), m_nMaxTreeDepth(i_nMaxTreeDepth),
+			m_dLodRatio(i_dLodRatio), m_fPointSize(i_fPointSize)
 		{
 
 		}

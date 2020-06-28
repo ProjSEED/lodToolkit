@@ -16,10 +16,12 @@ namespace seed
 			///////////////////////////////////////
 			// constructors and destructor
 
-			PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor);
+			PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor,
+				int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
+				float i_dLodRatio, float i_fPointSize);
 
 			~PointsToOSG();
-
+			
 			///////////////////////////////////////
 			// public member functions
 
