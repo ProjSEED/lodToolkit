@@ -134,7 +134,7 @@ namespace seed
 			}
 			pProxyNode->setCenter(boundingBoxGlobal.center());
 			pProxyNode->setRadius(boundingBoxGlobal.radius());
-			pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::DEFER_LOADING_TO_DATABASE_PAGER);
+			pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::LOAD_IMMEDIATELY);
 			osgDB::writeNodeFile(*pProxyNode, mainName);
 			std::string xmlName = output + "/metadata.xml";
 			this->ExportSRS(xmlName);

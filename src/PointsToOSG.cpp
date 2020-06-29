@@ -97,7 +97,7 @@ namespace seed
 				osg::ProxyNode* pProxyNode = new osg::ProxyNode();
 				pProxyNode->setCenter(boundingBoxGlobal.center());
 				pProxyNode->setRadius(boundingBoxGlobal.radius());
-				pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::DEFER_LOADING_TO_DATABASE_PAGER);
+				pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::LOAD_IMMEDIATELY);
 				for (int i = 0; i < l_lstTileFiles.size(); i++) {
 					pProxyNode->setFileName(i, l_lstTileFiles[i]);
 				}
