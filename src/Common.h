@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <assert.h>
+#include "tinyxml.h" 
 
 typedef unsigned char IntentType;
 const int IntenDim = 3;
@@ -36,8 +37,10 @@ namespace seed
 		bool CheckOrCreateFolder(const std::string& i_strDir);
 		bool FileExists(const std::string& i_strPath);
 		unsigned char Color8Bits(uint16_t color16Bit);
-		std::string getFileName(const std::string & full_path_in);
-		std::string getExtension(const std::string & full_path_in);
+
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText);
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText);
 	}
 
 	struct Point3F

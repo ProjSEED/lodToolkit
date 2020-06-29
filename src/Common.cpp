@@ -67,34 +67,36 @@ namespace seed
 			return (color16Bit < 256) ? color16Bit : static_cast<unsigned char>((color16Bit / 65535.0)*255.0);
 		};
 
-		struct MatchPathSeparator
+		//add leaf node  
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText)
 		{
-			bool operator()(char ch) const
-			{
-				return ch == '/' || ch == '\\';
-			}
-		};
-
-		std::string getFileName(const std::string & full_path_in)
-		{
-			return std::string(
-				std::find_if(full_path_in.rbegin(), full_path_in.rend(),
-					MatchPathSeparator()).base(),
-				full_path_in.end());
+			TiXmlElement elmNode(pszNode);
+			TiXmlText elmText(pszText);
+			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
+			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
+			return 1;
 		}
 
-		// get extension .xxx
-		std::string getExtension(const std::string & full_path_in)
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText)
 		{
-			std::string filename = getFileName(full_path_in);
-			std::size_t found = filename.find_last_of('.');
-			if (found < filename.size())
-				return filename.substr(found);
-			else
-				return std::string();
+			char pszText[256];
+			sprintf(pszText, "%.10f", doubText);
+			TiXmlElement elmNode(pszNode);
+			TiXmlText elmText(pszText);
+			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
+			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
+			return 1;
+		}
+
+		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText)
+		{
+			char pszText[256];
+			sprintf(pszText, "%d", intText);
+			TiXmlElement elmNode(pszNode);
+			TiXmlText elmText(pszText);
+			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
+			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
+			return 1;
 		}
 	}
-
-	
-	
 }

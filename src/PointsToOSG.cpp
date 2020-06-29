@@ -175,50 +175,17 @@ namespace seed
 
 			TiXmlElement * SRS = new TiXmlElement("SRS");
 			elmRoot.LinkEndChild(SRS);
-			AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
+			utils::AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
 
-			AddLeafNode(&elmRoot, "SRSOrigin", "0, 0, 0");
+			utils::AddLeafNode(&elmRoot, "SRSOrigin", "0, 0, 0");
 
 			TiXmlElement * Texture = new TiXmlElement("Texture");
 			elmRoot.LinkEndChild(Texture);
-			AddLeafNode(Texture, "ColorSource", "Visible");
+			utils::AddLeafNode(Texture, "ColorSource", "Visible");
 
 			xmlDoc.InsertEndChild(elmRoot);
 			xmlDoc.SaveFile();
 			return 1;
 		}
-
-		//add leaf node  
-		int PointsToOSG::AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText)
-		{
-			TiXmlElement elmNode(pszNode);
-			TiXmlText elmText(pszText);
-			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
-			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
-			return 1;
-		}
-
-		int PointsToOSG::AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText)
-		{
-			char pszText[256];
-			sprintf(pszText, "%.10f", doubText);
-			TiXmlElement elmNode(pszNode);
-			TiXmlText elmText(pszText);
-			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
-			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
-			return 1;
-		}
-
-		int PointsToOSG::AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText)
-		{
-			char pszText[256];
-			sprintf(pszText, "%d", intText);
-			TiXmlElement elmNode(pszNode);
-			TiXmlText elmText(pszText);
-			if (elmNode.InsertEndChild(elmText) == nullptr) return -1;
-			if (pElmParent->InsertEndChild(elmNode) == nullptr) return -1;
-			return 1;
-		}
-
 	}
 }

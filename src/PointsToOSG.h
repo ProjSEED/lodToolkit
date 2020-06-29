@@ -35,9 +35,7 @@ namespace seed
 				std::vector<OSGBPoint>& i_lstPoints);
 
 			int ExportSRS(const std::string& i_cFilePath);
-			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);
-			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText);
-			int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText);
+
 
 			///////////////////////////////////////
 			// private variables
