@@ -66,6 +66,7 @@ namespace seed
 			bool BuildNode(const std::vector<OSGBPoint> *pointSet,
 				std::vector<unsigned int> &pointIndex,
 				osg::BoundingBox boundingBox,
+				osg::BoundingBox boundingBoxLevel0,
 				const std::string& saveFilePath,
 				const std::string& strBlock,
 				unsigned int level,

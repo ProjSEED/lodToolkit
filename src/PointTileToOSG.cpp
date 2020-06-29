@@ -45,7 +45,7 @@ namespace seed
 			boundingBoxGlobal.expandBy(boundingBox);
 			try
 			{
-				BuildNode(pointSet, pointIndex, boundingBox, saveFilePath, strBlock, 0, 0);
+				BuildNode(pointSet, pointIndex, boundingBox, boundingBox, saveFilePath, strBlock, 0, 0);
 				pointIndex.swap(std::vector<unsigned int>());
 			}
 			catch (...)
@@ -102,6 +102,7 @@ namespace seed
 		bool PointTileToOSG::BuildNode(const std::vector<OSGBPoint> *pointSet,
 			std::vector<unsigned int> &pointIndex,
 			osg::BoundingBox boundingBox,
+			osg::BoundingBox boundingBoxLevel0,
 			const std::string& saveFilePath,
 			const std::string& strBlock,
 			unsigned int level,
@@ -215,11 +216,8 @@ namespace seed
 			rightPageName.assign(tmpRightPageName);
 			
 			double rangeRatio = 1;
-			for (unsigned int l = 0; l < level; ++l)
-			{
-				rangeRatio *= 2;
-			}
-			double rangeValue = boundingBox.radius()*_lodRatio*rangeRatio;
+			double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
+			seed::log::DumpLog(seed::log::Info, "radius: %f, rangeValue: %f", boundingBox.radius(), rangeValue);
 			leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			leftPageNode->setFileName(0, leftPageName);
 			leftPageNode->setRange(0, rangeValue, FLT_MAX);
@@ -234,14 +232,14 @@ namespace seed
 			// left
 			if (leftPointSetIndex.size())
 			{
-				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, saveFilePath, strBlock, level + 1, childNo * 2);
+				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2);
 				leftPointSetIndex.swap(std::vector<unsigned int>());
 				mt->addChild(leftPageNode.get());
 			}
 			// right
 			if (rightPointSetIndex.size())
 			{
-				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, saveFilePath, strBlock, level + 1, childNo * 2 + 1);
+				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2 + 1);
 				rightPointSetIndex.swap(std::vector<unsigned int>());
 				mt->addChild(rightPageNode.get());
 			}

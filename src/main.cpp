@@ -6,10 +6,10 @@ void configure_parser(cli::Parser& parser) {
 	parser.set_required<std::string>("m", "mode", "<pointcloud/mesh>, mesh mode only support *.obj with group info");
 	parser.set_required<std::string>("i", "input", "input file path, pointcloud: <ply/las/laz/xyz>, mesh: <obj>");
 	parser.set_required<std::string>("o", "output", "output dir path");
+	parser.set_optional<float>("r", "lodRatio", 1.f, "lod ratio, how many pixel should 1 meter have in level 0 (the most coarse level)");
 	parser.set_optional<int>("t", "tileSize", 1000000, "[pointcloud mode only] max number of point in one tile");
 	parser.set_optional<int>("n", "nodeSize", 5000, "[pointcloud mode only] max number of point in one node");
 	parser.set_optional<int>("d", "depth", 99, "[pointcloud mode only] max lod tree depth");
-	parser.set_optional<float>("r", "lodRatio", 0.5f, "[pointcloud mode only] lod ratio");
 	parser.set_optional<float>("p", "pointSize", 10.0f, "[pointcloud mode only] point size");
 }
 
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 	else if(parser.get<std::string>("m") == "mesh")
 	{
 		seed::io::MeshToOSG mesh2OSG;
-		if (mesh2OSG.Convert(parser.get<std::string>("i"), parser.get<std::string>("o")))
+		if (mesh2OSG.Convert(parser.get<std::string>("i"), parser.get<std::string>("o"), parser.get<float>("r")))
 		{
 			seed::log::DumpLog(seed::log::Debug, "Process succeed!");
 		}
