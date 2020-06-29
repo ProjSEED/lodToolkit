@@ -217,7 +217,6 @@ namespace seed
 			
 			double rangeRatio = 1;
 			double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
-			seed::log::DumpLog(seed::log::Info, "radius: %f, rangeValue: %f", boundingBox.radius(), rangeValue);
 			leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			leftPageNode->setFileName(0, leftPageName);
 			leftPageNode->setRange(0, rangeValue, FLT_MAX);
