@@ -1,8 +1,9 @@
 # ToOSGB
 
-Convert point cloud in PLY/LAS/LAZ/XYZ format to OSGB PagedLOD tree, so that the point cloud could be loaded into OpenSceneGraph instantly.
-
-This program could handle extremely large point cloud as PLY/LAS/LAZ/XYZ file is streaming to the convertor.
+- Convert point cloud in PLY/LAS/LAZ/XYZ format to OSGB PagedLOD tree, so that the point cloud could be loaded into OpenSceneGraph instantly.
+> This program could handle extremely large point cloud as PLY/LAS/LAZ/XYZ file is streaming to the convertor.
+- Convert mesh in OBJ format to OSGB PagedLOD tree, so that the point cloud could be loaded into OpenSceneGraph instantly.
+> This program only support OBJ format mesh with group info, each group will be a tile in the OSGB PagedLOD tree.
 
 ### Thirdparty (source codes included for convenience):
 - LASzip
