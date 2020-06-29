@@ -13,7 +13,7 @@ namespace seed
 
 			~MeshToOSG();
 
-			bool Convert(const std::string& input, const std::string& output);
+			bool Convert(const std::string& input, const std::string& output, float lodRatio);
 
 		private:
 			int ExportSRS(const std::string& i_cFilePath);

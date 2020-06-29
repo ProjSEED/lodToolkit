@@ -15,6 +15,7 @@
 #include <osgDB/WriteFile>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
+#include <osgUtil/Simplifier>
 
 #include "tinyxml.h" 
 
@@ -32,7 +33,7 @@ namespace seed
 
 		}
 
-		bool MeshToOSG::Convert(const std::string& input, const std::string& output)
+		bool MeshToOSG::Convert(const std::string& input, const std::string& output, float lodRatio)
 		{
 			std::string ext = osgDB::getFileExtensionIncludingDot(input);
 			if (ext == ".obj")
@@ -45,6 +46,7 @@ namespace seed
 				return false;
 			}
 			seed::log::DumpLog(seed::log::Info, "Input file format: %s", ext.c_str());
+			seed::progress::UpdateProgress(1);
 
 			osg::ref_ptr<osgDB::Options> pOptRead = new osgDB::Options("AMBIENT=0 noRotation");
 			osg::ref_ptr<osg::Node> loadedModel = osgDB::readRefNodeFile(input, pOptRead);
@@ -59,6 +61,7 @@ namespace seed
 				seed::log::DumpLog(seed::log::Critical, "Open file %s failed!", input.c_str());
 				return false;
 			}
+			seed::progress::UpdateProgress(30);
 
 			std::string dirRoot(output);
 			std::string dirDataRelative("Data/");
@@ -85,25 +88,36 @@ namespace seed
 				osgDB::writeNodeFile(*geode, dirData + highModelRelativePath, pOptWrite);
 
 				osg::Geode* geodeLow = new osg::Geode(*geode, osg::CopyOp::DEEP_COPY_ALL);
-				osg::StateSet* stateset = geodeLow->getDrawable(0)->asGeometry()->getStateSet();
-				if (stateset)
+				
+				osg::Geometry* geometry = geodeLow->getDrawable(0)->asGeometry();
+				if (geometry)
 				{
-					osg::Texture2D* tex = static_cast<osg::Texture2D*>(stateset->getTextureAttribute(0, osg::StateAttribute::TEXTURE));
-					if (tex)
+					int before = geometry->getVertexArray()->getNumElements();
+					osgUtil::Simplifier simplifier;
+					simplifier.setSampleRatio(0.001f);
+					simplifier.simplify(*geometry);
+
+					osg::StateSet* stateset = geometry->getStateSet();
+					if (stateset)
 					{
-						osg::Image* img = tex->getImage();
-						if (img)
+						//stateset->removeTextureAttribute(0, osg::StateAttribute::TEXTURE);
+						osg::Texture2D* tex = static_cast<osg::Texture2D*>(stateset->getTextureAttribute(0, osg::StateAttribute::TEXTURE));
+						if (tex)
 						{
-							highModelImgPath = img->getFileName();
-							lowModelImgPath = osgDB::getNameLessExtension(highModelImgPath) + "_low" + osgDB::getFileExtensionIncludingDot(highModelImgPath);
-							img->scaleImage(128, 128, img->r());
-							osgDB::writeImageFile(*img, lowModelImgPath);
-							img->setFileName(lowModelImgPath);
+							osg::Image* img = tex->getImage();
+							if (img)
+							{
+								highModelImgPath = img->getFileName();
+								lowModelImgPath = osgDB::getNameLessExtension(highModelImgPath) + "_low" + osgDB::getFileExtensionIncludingDot(highModelImgPath);
+								img->scaleImage(128, 128, img->r());
+								osgDB::writeImageFile(*img, lowModelImgPath);
+								img->setFileName(lowModelImgPath);
+							}
 						}
 					}
 				}
 
-				float pixelSize = geodeLow->getBoundingBox().radius() * 2.f * 10.f;
+				float pixelSize = geodeLow->getBoundingBox().radius() * 2.f * lodRatio;
 				osg::PagedLOD* lod = new osg::PagedLOD;
 				lod->setCenter(geodeLow->getBoundingBox().center());
 				lod->setRadius(geodeLow->getBoundingBox().radius());
@@ -116,6 +130,7 @@ namespace seed
 				pProxyNode->setFileName(i, dirDataRelative + lowModelRelativePath);
 
 				remove(lowModelImgPath.c_str());
+				seed::progress::UpdateProgress(30 + (i + 1) * 65 / group->getNumChildren());
 			}
 			pProxyNode->setCenter(boundingBoxGlobal.center());
 			pProxyNode->setRadius(boundingBoxGlobal.radius());
@@ -123,6 +138,7 @@ namespace seed
 			osgDB::writeNodeFile(*pProxyNode, mainName);
 			std::string xmlName = output + "/metadata.xml";
 			this->ExportSRS(xmlName);
+			seed::progress::UpdateProgress(100);
 			return true;
 		}
 
