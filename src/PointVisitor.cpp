@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
 
 namespace seed
 {
@@ -431,7 +433,7 @@ namespace seed
 
 		bool PointVisitor::ReadFile(const std::string& i_filePath)
 		{
-			std::string ext = utils::getExtension(i_filePath);
+			std::string ext = osgDB::getFileExtensionIncludingDot(i_filePath);
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
 			else if (ext == ".laz" || ext == ".las")
