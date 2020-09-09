@@ -170,9 +170,10 @@ namespace seed
 				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor;
 
 				auto& rgb = m_pointRead->rgb;
-				pt.I[0] = utils::Color8Bits(rgb[0]);
-				pt.I[1] = utils::Color8Bits(rgb[1]);
-				pt.I[2] = utils::Color8Bits(rgb[2]);
+				pt.C[0] = utils::Color8Bits(rgb[0]);
+				pt.C[1] = utils::Color8Bits(rgb[1]);
+				pt.C[2] = utils::Color8Bits(rgb[2]);
+				pt.I = float(m_pointRead->intensity) / 255.0f;
 
 				m_currentPointId++;
 				return true;
@@ -273,17 +274,16 @@ namespace seed
 					return false;
 				}
 
-				if (equal_strings("vertex", elem_name)) // 仅读取点信息
+				if (equal_strings("vertex", elem_name))
 				{
 					m_pointCount = num_elems;
-					for (int j = 0; j < 3; j++)//至少得有点
-						if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex< float >::ReadProperties[j]))) // 读取 xyz
+					for (int j = 0; j < 3; j++)
+						if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex< float >::ReadProperties[j]))) //  xyz
 						{
 							seed::log::DumpLog(seed::log::Critical, "Read Vertex failed!");
 							return false;
 						}
 
-					//颜色 可选
 					for (int j = 3; j < 6; j++)
 						if (!ply_get_property(m_plyFile, elem_name, &(PlyColorVertex<float>::ReadProperties[j])))
 						{
@@ -333,7 +333,7 @@ namespace seed
 			{
 				point.P[k] = l_oVertex.point[k] - m_offset[k];
 				if (m_foundColors)
-					point.I[k] = utils::Color8Bits(l_oVertex.color[k]);
+					point.C[k] = utils::Color8Bits(l_oVertex.color[k]);
 			}
 
 			m_currentPointId++;
@@ -402,11 +402,11 @@ namespace seed
 			ss >> point.P[1];
 			ss >> point.P[2];
 			ss >> color;
-			point.I[0] = utils::Color8Bits(color);
+			point.C[0] = utils::Color8Bits(color);
 			ss >> color;
-			point.I[1] = utils::Color8Bits(color);
+			point.C[1] = utils::Color8Bits(color);
 			ss >> color;
-			point.I[2] = utils::Color8Bits(color);
+			point.C[2] = utils::Color8Bits(color);
 
 			// init offset
 			if (m_currentPointId == 0)

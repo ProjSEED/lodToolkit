@@ -67,18 +67,20 @@ namespace seed
 			osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
 			osg::ref_ptr<osg::Vec3Array> pointArray = new osg::Vec3Array;
 			osg::ref_ptr<osg::Vec4Array> colorArray = new osg::Vec4Array;
+			osg::ref_ptr<osg::FloatArray> intensityArray = new osg::FloatArray;
 			osg::ref_ptr<osg::StateSet> set = new osg::StateSet;
 			osg::ref_ptr<osg::Point> point = new osg::Point;
-
+			
 			for (std::vector<unsigned int>::iterator i = pointIndex.begin(); i != pointIndex.end(); i++)
 			{
 				OSGBPoint tmpPoint = pointSet->at(*i);
 				pointArray->push_back(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
 				colorArray->push_back(
-					osg::Vec4((float)tmpPoint.I[0] / 255.0f,
-					(float)tmpPoint.I[1] / 255.0f,
-						(float)tmpPoint.I[2] / 255.0f,
+					osg::Vec4((float)tmpPoint.C[0] / 255.0f,
+					(float)tmpPoint.C[1] / 255.0f,
+						(float)tmpPoint.C[2] / 255.0f,
 						1));
+				intensityArray->push_back(tmpPoint.I);
 			}
 
 			if (_pointSize > 0)
@@ -91,8 +93,11 @@ namespace seed
 			}
 			geometry->setVertexArray(pointArray.get());
 			geometry->setColorArray(colorArray.get());
-			geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, pointIndex.size()));
 			geometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+			geometry->setVertexAttribArray(2, intensityArray);
+			geometry->setVertexAttribBinding(2, osg::Geometry::BIND_PER_VERTEX);
+
+			geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, pointIndex.size()));
 
 			geometry->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 			geode->addDrawable(geometry.get());

@@ -98,13 +98,14 @@ namespace seed
 	{
 	public:
 		PointXYZIT() :
-			P(0,0,0)
+			P(0,0,0), I(0)
 		{
-			I.Fill(0);
+			C.Fill(0);
 		}
 
 		Point3F P;
-		Vec<IntentT, Dim>	I;
+		Vec<IntentT, Dim>	C;
+		float I;
 	};
 	typedef seed::PointXYZIT<IntentType, IntenDim> OSGBPoint;
 
