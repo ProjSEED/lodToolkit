@@ -11,6 +11,7 @@ void configure_parser(cli::Parser& parser) {
 	parser.set_optional<int>("n", "nodeSize", 5000, "[pointcloud mode only] max number of point in one node");
 	parser.set_optional<int>("d", "depth", 99, "[pointcloud mode only] max lod tree depth");
 	parser.set_optional<float>("p", "pointSize", 10.0f, "[pointcloud mode only] point size");
+	parser.set_optional<std::string>("c", "colorMode", "iGrey", "[pointcloud mode only] <rgb/iGrey/iBlueWhiteRed>, iGrey/iBlueWhiteRed use intensity from las/laz");
 }
 
 int main(int argc, char** argv)
@@ -28,7 +29,7 @@ int main(int argc, char** argv)
 			seed::io::PointsToOSG points2OSG(pointVistor,
 				parser.get<int>("t"), parser.get<int>("n"), parser.get<int>("d"),
 				parser.get<float>("r"), parser.get<float>("p"));
-			if (points2OSG.Write(parser.get<std::string>("o")) > 0)
+			if (points2OSG.Write(parser.get<std::string>("o"), parser.get<std::string>("c")) > 0)
 			{
 				seed::log::DumpLog(seed::log::Debug, "Process succeed!");
 			}

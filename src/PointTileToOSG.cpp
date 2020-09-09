@@ -4,6 +4,30 @@ namespace seed
 {
 	namespace io
 	{
+		void PointTileToOSG::CreateColorBar()
+		{
+			if (_colorMode == ColorMode::IntensityGrey)
+			{
+				for (int i = 0; i < 256; ++i)
+				{
+					float intensity = (float)i / 255.f;
+					_colorBar[i] = osg::Vec4(intensity, intensity, intensity, 1.);
+				}
+			}
+			else if (_colorMode == ColorMode::IntensityBlueWhiteRed)
+			{
+				osg::Vec4 blue(0., 0., 1., 1.);
+				osg::Vec4 white(1., 1., 1., 1.);
+				osg::Vec4 red(1., 0., 0., 1.);
+				for (int i = 0; i < 128; ++i)
+				{
+					float intensity = (float)i / 127.f;
+					_colorBar[i] = blue * (1 - intensity) + white * intensity;
+					_colorBar[i + 128] = white * (1 - intensity) + red * intensity;
+				}
+			}
+		}
+
 		AxisInfo PointTileToOSG::FindMaxAxis(osg::BoundingBox boundingBox)
 		{
 			AxisInfo maxAxisInfo;
@@ -67,7 +91,6 @@ namespace seed
 			osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
 			osg::ref_ptr<osg::Vec3Array> pointArray = new osg::Vec3Array;
 			osg::ref_ptr<osg::Vec4Array> colorArray = new osg::Vec4Array;
-			osg::ref_ptr<osg::FloatArray> intensityArray = new osg::FloatArray;
 			osg::ref_ptr<osg::StateSet> set = new osg::StateSet;
 			osg::ref_ptr<osg::Point> point = new osg::Point;
 			
@@ -75,12 +98,22 @@ namespace seed
 			{
 				OSGBPoint tmpPoint = pointSet->at(*i);
 				pointArray->push_back(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
-				colorArray->push_back(
-					osg::Vec4((float)tmpPoint.C[0] / 255.0f,
-					(float)tmpPoint.C[1] / 255.0f,
+				if (_colorMode == ColorMode::RGB)
+				{
+					colorArray->push_back(
+						osg::Vec4((float)tmpPoint.C[0] / 255.0f,
+						(float)tmpPoint.C[1] / 255.0f,
 						(float)tmpPoint.C[2] / 255.0f,
 						1));
-				intensityArray->push_back(tmpPoint.I);
+				}
+				else if (_colorMode == ColorMode::IntensityGrey)
+				{
+					colorArray->push_back(_colorBar[tmpPoint.I]);
+				}
+				else if (_colorMode == ColorMode::IntensityBlueWhiteRed)
+				{
+					colorArray->push_back(_colorBar[tmpPoint.I]);
+				}
 			}
 
 			if (_pointSize > 0)
@@ -94,8 +127,6 @@ namespace seed
 			geometry->setVertexArray(pointArray.get());
 			geometry->setColorArray(colorArray.get());
 			geometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
-			geometry->setVertexAttribArray(2, intensityArray);
-			geometry->setVertexAttribBinding(2, osg::Geometry::BIND_PER_VERTEX);
 
 			geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, pointIndex.size()));
 

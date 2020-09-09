@@ -105,8 +105,14 @@ namespace seed
 
 		Point3F P;
 		Vec<IntentT, Dim>	C;
-		float I;
+		IntentT I;
 	};
 	typedef seed::PointXYZIT<IntentType, IntenDim> OSGBPoint;
 
+	enum ColorMode
+	{
+		RGB = 0,
+		IntensityGrey = 1,
+		IntensityBlueWhiteRed = 2
+	};
 }

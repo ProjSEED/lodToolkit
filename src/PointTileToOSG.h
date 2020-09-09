@@ -44,13 +44,18 @@ namespace seed
 			PointTileToOSG(unsigned int maxTreeLevel,
 				unsigned int maxPointNumPerOneNode,
 				double lodRatio,
-				float pointSize)
+				float pointSize, 
+				ColorMode colorMode)
 			{
 				_maxTreeLevel = maxTreeLevel;
 				_maxPointNumPerOneNode = maxPointNumPerOneNode;
 				_lodRatio = lodRatio;
 				_pointSize = pointSize;
+				_colorMode = colorMode;
+				CreateColorBar();
 			}
+
+			void CreateColorBar();
 
 			bool Generate(const std::vector<OSGBPoint> *pointSet,
 				const std::string& saveFilePath, const std::string& strBlock, osg::BoundingBox& boundingBoxGlobal);
@@ -60,6 +65,8 @@ namespace seed
 			unsigned int _maxPointNumPerOneNode;
 			double _lodRatio;
 			float _pointSize;
+			ColorMode _colorMode;
+			osg::Vec4 _colorBar[256];
 
 			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 

@@ -173,7 +173,7 @@ namespace seed
 				pt.C[0] = utils::Color8Bits(rgb[0]);
 				pt.C[1] = utils::Color8Bits(rgb[1]);
 				pt.C[2] = utils::Color8Bits(rgb[2]);
-				pt.I = float(m_pointRead->intensity) / 255.0f;
+				pt.I = utils::Color8Bits(m_pointRead->intensity);
 
 				m_currentPointId++;
 				return true;

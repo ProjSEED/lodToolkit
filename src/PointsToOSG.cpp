@@ -16,7 +16,7 @@ namespace seed
 			m_nTileSize(i_nTileSize), m_nMaxPointNumPerOneNode(i_nMaxPointNumPerOneNode), m_nMaxTreeDepth(i_nMaxTreeDepth),
 			m_dLodRatio(i_dLodRatio), m_fPointSize(i_fPointSize)
 		{
-
+			
 		}
 
 		PointsToOSG::~PointsToOSG()
@@ -24,9 +24,27 @@ namespace seed
 
 		}
 
-		int PointsToOSG::Write(const std::string& i_cFilePath)
+		int PointsToOSG::Write(const std::string& i_cFilePath, std::string i_strColorMode)
 		{
 			seed::progress::UpdateProgress(1);
+			if (i_strColorMode == "rgb")
+			{
+				m_eColorMode = ColorMode::RGB;
+			}
+			else if (i_strColorMode == "iGrey")
+			{
+				m_eColorMode = ColorMode::IntensityGrey;
+			}
+			else if (i_strColorMode == "iBlueWhiteRed")
+			{
+				m_eColorMode = ColorMode::IntensityBlueWhiteRed;
+			}
+			else
+			{
+				seed::log::DumpLog(seed::log::Critical, "ColorMode %s is NOT supported now.", i_strColorMode.c_str());
+				return 0;
+			}
+
 			if(seed::utils::CheckOrCreateFolder(i_cFilePath) == false)
 			{
 				return 0;
@@ -48,7 +66,7 @@ namespace seed
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
-				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize);
+				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, this->m_eColorMode);
 				std::string outPutFileFullName;
 				char cBlock[16];
 				itoa(l_nTileID, cBlock, 10);

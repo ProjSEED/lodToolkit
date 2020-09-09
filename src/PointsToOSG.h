@@ -25,7 +25,7 @@ namespace seed
 			///////////////////////////////////////
 			// public member functions
 
-			int Write(const std::string& i_cFilePath);
+			int Write(const std::string& i_cFilePath, std::string i_strColorMode);
 
 		private:
 			///////////////////////////////////////
@@ -46,6 +46,7 @@ namespace seed
 			unsigned int m_nMaxPointNumPerOneNode;
 			double m_dLodRatio;
 			float m_fPointSize;
+			ColorMode m_eColorMode;
 
 			std::shared_ptr<PointVisitor> m_oPointVisitor;
 		};
