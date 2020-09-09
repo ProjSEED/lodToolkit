@@ -257,10 +257,12 @@ namespace seed
 			leftPageNode->setFileName(0, leftPageName);
 			leftPageNode->setRange(0, rangeValue, FLT_MAX);
 			leftPageNode->setCenter(leftBoundingBox.center());
+			leftPageNode->setRadius(leftBoundingBox.radius());
 			rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			rightPageNode->setFileName(0, rightPageName);
 			rightPageNode->setRange(0, rangeValue, FLT_MAX);
 			rightPageNode->setCenter(rightBoundingBox.center());
+			rightPageNode->setRadius(rightBoundingBox.radius());
 
 			mt->addChild(nodeGeode.get());
 
