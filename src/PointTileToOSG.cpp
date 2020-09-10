@@ -6,24 +6,50 @@ namespace seed
 	{
 		void PointTileToOSG::CreateColorBar()
 		{
+			std::vector<osg::Vec4> steps;
 			if (_colorMode == ColorMode::IntensityGrey)
 			{
-				for (int i = 0; i < 256; ++i)
-				{
-					float intensity = (float)i / 255.f;
-					_colorBar[i] = osg::Vec4(intensity, intensity, intensity, 1.);
-				}
+				osg::Vec4 black(0., 0., 0., 1.);
+				osg::Vec4 white(1., 1., 1., 1.);
+				steps.push_back(black);
+				steps.push_back(white);
 			}
 			else if (_colorMode == ColorMode::IntensityBlueWhiteRed)
 			{
 				osg::Vec4 blue(0., 0., 1., 1.);
 				osg::Vec4 white(1., 1., 1., 1.);
 				osg::Vec4 red(1., 0., 0., 1.);
-				for (int i = 0; i < 128; ++i)
+				steps.push_back(blue);
+				steps.push_back(white);
+				steps.push_back(red);
+			}
+			else if (_colorMode == ColorMode::IntensityHeightBlend)
+			{
+				osg::Vec4 blue(0., 0., 1., 1.);
+				osg::Vec4 green(0., 1., 0., 1.);
+				osg::Vec4 yellow(1., 1., 0., 1.);
+				osg::Vec4 red(1., 0., 0., 1.);
+				steps.push_back(blue);
+				steps.push_back(green);
+				steps.push_back(yellow);
+				steps.push_back(red);
+			}
+
+			assert(steps.size() >= 2);
+			for (int i = 0; i < 256; ++i)
+			{
+				float intensity = (float)i / 255.f * (float)(steps.size() - 1);
+				int floor = intensity;
+				floor = std::max(0, floor);
+				if (floor >= steps.size() - 1)
 				{
-					float intensity = (float)i / 127.f;
-					_colorBar[i] = blue * (1 - intensity) + white * intensity;
-					_colorBar[i + 128] = white * (1 - intensity) + red * intensity;
+					_colorBar[i] = steps.back();
+				}
+				else
+				{
+					float upper = intensity - floor;
+					float lower = 1. - upper;
+					_colorBar[i] = steps[floor] * lower + steps[floor + 1] * upper;
 				}
 			}
 		}
@@ -56,7 +82,7 @@ namespace seed
 		}
 
 		bool PointTileToOSG::Generate(const std::vector<OSGBPoint> *pointSet,
-			const std::string& saveFilePath, const std::string& strBlock, osg::BoundingBox& boundingBoxGlobal)
+			const std::string& saveFilePath, const std::string& strBlock)
 		{
 			std::vector<unsigned int> pointIndex;
 			osg::BoundingBox boundingBox;
@@ -66,7 +92,6 @@ namespace seed
 				OSGBPoint tmpPoint = pointSet->at(i);
 				boundingBox.expandBy(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
 			}
-			boundingBoxGlobal.expandBy(boundingBox);
 			try
 			{
 				BuildNode(pointSet, pointIndex, boundingBox, boundingBox, saveFilePath, strBlock, 0, 0);
@@ -113,6 +138,19 @@ namespace seed
 				else if (_colorMode == ColorMode::IntensityBlueWhiteRed)
 				{
 					colorArray->push_back(_colorBar[tmpPoint.I]);
+				}
+				else if (_colorMode == ColorMode::IntensityHeightBlend)
+				{
+					float x = (tmpPoint.P.Z() - this->_boundingBoxGlobal.zMin()) / (this->_boundingBoxGlobal.zMax() - this->_boundingBoxGlobal.zMin());
+					//// sigmoid
+					//x = (x - 0.5) * 4;
+					//x = 1. / (1. + exp(-5 * x));
+					int index = x * 255;
+					index = std::max(0, std::min(255, index));
+					osg::Vec4 color = _colorBar[index];
+					color *= (tmpPoint.I / 255.);
+					color.w() = 1.0;
+					colorArray->push_back(color);
 				}
 			}
 

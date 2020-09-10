@@ -164,7 +164,7 @@ namespace seed
 					m_offset[2] = m_laszipHeader->z_offset;
 				}
 
-				// add offset and scale to coords
+				// add scale to coords
 				pt.P[0] = m_pointRead->X * m_laszipHeader->x_scale_factor;
 				pt.P[1] = m_pointRead->Y * m_laszipHeader->y_scale_factor;
 				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor;
@@ -431,31 +431,89 @@ namespace seed
 		{
 		}
 
-		bool PointVisitor::ReadFile(const std::string& i_filePath)
+		bool PointVisitor::PerpareFile(const std::string& i_filePath, bool runStatistic)
+		{
+			if(!(ResetFile(i_filePath)))
+				return false;
+
+			std::string ext = osgDB::getFileExtensionIncludingDot(i_filePath);
+			seed::log::DumpLog(seed::log::Info, "Input file format: %s", ext.c_str());
+
+			if (runStatistic)
+			{
+				seed::log::DumpLog(seed::log::Info, "Run statistic");
+
+				// bbox and offset
+				OSGBPoint l_oPoint;
+				this->m_bbox.init();
+				while (m_pointsReader->ReadNextPoint(l_oPoint))
+				{
+					this->m_bbox.expandBy(osg::Vec3(l_oPoint.P.X(), l_oPoint.P.Y(), l_oPoint.P.Z()));
+				}
+				this->m_offset = m_pointsReader->GetOffset();
+
+				// histogram
+				if (!(ResetFile(i_filePath)))
+					return false;
+
+				this->m_bboxZHistogram = this->m_bbox;
+				int histogram[256] = { 0 };
+				while (m_pointsReader->ReadNextPoint(l_oPoint))
+				{
+					int index = (l_oPoint.P.Z() - this->m_bbox.zMin()) / (this->m_bbox.zMax() - this->m_bbox.zMin()) * 255.;
+					index = std::max(0, std::min(255, index));
+					histogram[index]++;
+				}
+				int CountFront = 0;
+				int CountBack = 0;
+				int threshold = (float)m_pointsReader->GetPointsCount() * 0.025;
+				for (int i = 0; i < 256; ++i)
+				{
+					CountFront += histogram[i];
+					if (CountFront >= threshold)
+					{
+						this->m_bboxZHistogram.zMin() = (this->m_bbox.zMax() - this->m_bbox.zMin()) / 255. * (float)i + this->m_bbox.zMin();
+						break;
+					}
+				}
+				for (int i = 255; i >= 0; --i)
+				{
+					CountBack += histogram[i];
+					if (CountBack >= threshold)
+					{
+						this->m_bboxZHistogram.zMax() = (this->m_bbox.zMax() - this->m_bbox.zMin()) / 255. * (float)i + this->m_bbox.zMin();
+						break;
+					}
+				}
+
+				// reset file to read
+				return ResetFile(i_filePath);
+			}
+			else
+			{
+				return true;
+			}
+		}
+
+		bool PointVisitor::ResetFile(const std::string& i_filePath)
 		{
 			std::string ext = osgDB::getFileExtensionIncludingDot(i_filePath);
 			if (ext == ".ply")
 				m_pointsReader.reset(new PlyReader(i_filePath));
 			else if (ext == ".laz" || ext == ".las")
 				m_pointsReader.reset(new LazReader(i_filePath));
-			else if(ext == ".xyz")
+			else if (ext == ".xyz")
 				m_pointsReader.reset(new XYZRGBReader(i_filePath));
 			else
 			{
 				seed::log::DumpLog(seed::log::Critical, "%s is NOT supported now.", ext.c_str());
 				return false;
 			}
-			seed::log::DumpLog(seed::log::Info, "Input file format: %s", ext.c_str());
 
 			if (!m_pointsReader->Init())
 				return false;
 
 			return true;
-		}
-
-		Point3F PointVisitor::GetOffset()
-		{
-			return m_pointsReader->GetOffset();
 		}
 
 		size_t PointVisitor::GetNumOfPoints()

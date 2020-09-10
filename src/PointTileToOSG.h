@@ -45,12 +45,14 @@ namespace seed
 				unsigned int maxPointNumPerOneNode,
 				double lodRatio,
 				float pointSize, 
+				osg::BoundingBox boundingBoxGlobal,
 				ColorMode colorMode)
 			{
 				_maxTreeLevel = maxTreeLevel;
 				_maxPointNumPerOneNode = maxPointNumPerOneNode;
 				_lodRatio = lodRatio;
 				_pointSize = pointSize;
+				_boundingBoxGlobal = boundingBoxGlobal;
 				_colorMode = colorMode;
 				CreateColorBar();
 			}
@@ -58,13 +60,14 @@ namespace seed
 			void CreateColorBar();
 
 			bool Generate(const std::vector<OSGBPoint> *pointSet,
-				const std::string& saveFilePath, const std::string& strBlock, osg::BoundingBox& boundingBoxGlobal);
+				const std::string& saveFilePath, const std::string& strBlock);
 
 		protected:
 			unsigned int _maxTreeLevel;
 			unsigned int _maxPointNumPerOneNode;
 			double _lodRatio;
 			float _pointSize;
+			osg::BoundingBox _boundingBoxGlobal;
 			ColorMode _colorMode;
 			osg::Vec4 _colorBar[256];
 

@@ -8,10 +8,8 @@ namespace seed
 	namespace io
 	{
 
-		PointsToOSG::PointsToOSG(std::shared_ptr<PointVisitor> i_oPointVisitor,
-			int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
+		PointsToOSG::PointsToOSG(int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
 			float i_dLodRatio, float i_fPointSize) :
-			m_oPointVisitor(i_oPointVisitor),
 			m_nProcessedPoints(0),
 			m_nTileSize(i_nTileSize), m_nMaxPointNumPerOneNode(i_nMaxPointNumPerOneNode), m_nMaxTreeDepth(i_nMaxTreeDepth),
 			m_dLodRatio(i_dLodRatio), m_fPointSize(i_fPointSize)
@@ -24,9 +22,10 @@ namespace seed
 
 		}
 
-		int PointsToOSG::Write(const std::string& i_cFilePath, std::string i_strColorMode)
+		int PointsToOSG::Write(const std::string& i_filePathInput, const std::string& i_cFilePathOutput, std::string i_strColorMode)
 		{
 			seed::progress::UpdateProgress(1);
+			// check color mode
 			if (i_strColorMode == "rgb")
 			{
 				m_eColorMode = ColorMode::RGB;
@@ -39,17 +38,30 @@ namespace seed
 			{
 				m_eColorMode = ColorMode::IntensityBlueWhiteRed;
 			}
+			else if (i_strColorMode == "iHeightBlend")
+			{
+				m_eColorMode = ColorMode::IntensityHeightBlend;
+			}
 			else
 			{
 				seed::log::DumpLog(seed::log::Critical, "ColorMode %s is NOT supported now.", i_strColorMode.c_str());
 				return 0;
 			}
 
-			if(seed::utils::CheckOrCreateFolder(i_cFilePath) == false)
+			// check input
+			m_oPointVisitor = std::shared_ptr<PointVisitor>(new PointVisitor);
+			if (!m_oPointVisitor->PerpareFile(i_filePathInput, m_eColorMode == ColorMode::IntensityHeightBlend))
+			{
+				seed::log::DumpLog(seed::log::Critical, "Can NOT open file %s", i_filePathInput);
+				return 0;
+			}
+
+			// check output
+			if(seed::utils::CheckOrCreateFolder(i_cFilePathOutput) == false)
 			{
 				return 0;
 			}
-			std::string filePathData = i_cFilePath + "/Data";
+			std::string filePathData = i_cFilePathOutput + "/Data";
 			if (seed::utils::CheckOrCreateFolder(filePathData) == false)
 			{
 				return 0;
@@ -62,11 +74,10 @@ namespace seed
 			size_t l_nTileID = 0;
 			std::vector<std::string> l_lstTileFiles;
 			size_t l_nTileCount = std::round(m_oPointVisitor->GetNumOfPoints() / (double)m_nTileSize);
-			osg::BoundingBox boundingBoxGlobal;
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
-				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, this->m_eColorMode);
+				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, m_oPointVisitor->GetBBoxZHistogram(), this->m_eColorMode);
 				std::string outPutFileFullName;
 				char cBlock[16];
 				itoa(l_nTileID, cBlock, 10);
@@ -80,7 +91,7 @@ namespace seed
 
 				try
 				{
-					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, strBlock, boundingBoxGlobal);
+					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, strBlock);
 					this->m_nProcessedPoints += l_lstPoints.size();
 				}
 				catch (...)
@@ -108,13 +119,13 @@ namespace seed
 			/////////////////////////////////////////////////////////////////////////
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate root node...");
-				std::string mainName = i_cFilePath + "/Root.osgb";
+				std::string mainName = i_cFilePathOutput + "/Root.osgb";
 				osg::ref_ptr<osg::MatrixTransform> pRoot = new osg::MatrixTransform();
 				auto l_oOffset = m_oPointVisitor->GetOffset();
 				pRoot->setMatrix(osg::Matrix::translate(l_oOffset.X(), l_oOffset.Y(), l_oOffset.Z()));
 				osg::ProxyNode* pProxyNode = new osg::ProxyNode();
-				pProxyNode->setCenter(boundingBoxGlobal.center());
-				pProxyNode->setRadius(boundingBoxGlobal.radius());
+				pProxyNode->setCenter(m_oPointVisitor->GetBBox().center());
+				pProxyNode->setRadius(m_oPointVisitor->GetBBox().radius());
 				pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::LOAD_IMMEDIATELY);
 				for (int i = 0; i < l_lstTileFiles.size(); i++) {
 					pProxyNode->setFileName(i, l_lstTileFiles[i]);
@@ -135,7 +146,7 @@ namespace seed
 			}
 
 			/////////////////////////////////////////////////////////////////////////
-			std::string xmlName = i_cFilePath + "/metadata.xml";
+			std::string xmlName = i_cFilePathOutput + "/metadata.xml";
 			this->ExportSRS(xmlName);
 			seed::progress::UpdateProgress(100);
 			return 1;

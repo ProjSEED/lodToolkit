@@ -98,7 +98,7 @@ namespace seed
 	{
 	public:
 		PointXYZIT() :
-			P(0,0,0), I(0)
+			P(0,0,0), I(255)
 		{
 			C.Fill(0);
 		}
@@ -113,6 +113,7 @@ namespace seed
 	{
 		RGB = 0,
 		IntensityGrey = 1,
-		IntensityBlueWhiteRed = 2
+		IntensityBlueWhiteRed = 2,
+		IntensityHeightBlend = 3
 	};
 }
