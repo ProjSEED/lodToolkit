@@ -15,7 +15,7 @@ namespace seed
 
 			int NextPoint(OSGBPoint& i_oPoint);	// >= 1 normal, 0 end, -1 error
 
-			Point3F GetOffset() { return m_offset; }
+			Point3F GetOffset();
 			osg::BoundingBox GetBBox() { return m_bbox; }
 			osg::BoundingBox GetBBoxZHistogram() { return m_bboxZHistogram; }
 			
@@ -26,7 +26,6 @@ namespace seed
 			bool ResetFile(const std::string& i_filePath);
 
 			std::shared_ptr<PointsReader> m_pointsReader;
-			Point3F m_offset;
 			osg::BoundingBox m_bbox;
 			osg::BoundingBox m_bboxZHistogram;
 		};

@@ -450,7 +450,10 @@ namespace seed
 				{
 					this->m_bbox.expandBy(osg::Vec3(l_oPoint.P.X(), l_oPoint.P.Y(), l_oPoint.P.Z()));
 				}
-				this->m_offset = m_pointsReader->GetOffset();
+				Point3F l_offset = m_pointsReader->GetOffset();
+				seed::log::DumpLog(seed::log::Info, "Offset: %f, %f, %f", l_offset.X(), l_offset.Y(), l_offset.Z());
+				seed::log::DumpLog(seed::log::Info, "LocalMin: %f, %f, %f", this->m_bbox.xMin(), this->m_bbox.yMin(), this->m_bbox.zMin());
+				seed::log::DumpLog(seed::log::Info, "LocalMax: %f, %f, %f", this->m_bbox.xMax(), this->m_bbox.yMax(), this->m_bbox.zMax());
 
 				// histogram
 				if (!(ResetFile(i_filePath)))
@@ -531,6 +534,11 @@ namespace seed
 			if (!m_pointsReader->ReadNextPoint(i_oPoint)) return -1;
 
 			return 1;
+		}
+
+		Point3F PointVisitor::GetOffset()
+		{
+			return m_pointsReader->GetOffset();
 		}
 	}
 }
