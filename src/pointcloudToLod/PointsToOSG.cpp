@@ -195,25 +195,27 @@ namespace seed
 
 		int PointsToOSG::ExportSRS(const std::string& i_cFilePath)
 		{
-			TiXmlDocument xmlDoc(i_cFilePath.c_str());
-			TiXmlDeclaration Declaration("1.0", "utf-8", "");
-			xmlDoc.InsertEndChild(Declaration);
-
-			TiXmlElement elmRoot("ModelMetadata");
-			elmRoot.SetAttribute("Version", "1");
-
-			TiXmlElement * SRS = new TiXmlElement("SRS");
-			elmRoot.LinkEndChild(SRS);
-			utils::AddLeafNode(SRS, "WKT", m_oPointVisitor->GetSRSName().c_str());
-
-			utils::AddLeafNode(&elmRoot, "SRSOrigin", "0, 0, 0");
-
-			TiXmlElement * Texture = new TiXmlElement("Texture");
-			elmRoot.LinkEndChild(Texture);
-			utils::AddLeafNode(Texture, "ColorSource", "Visible");
-
-			xmlDoc.InsertEndChild(elmRoot);
-			xmlDoc.SaveFile();
+			std::ofstream outfile(i_cFilePath);
+			if (outfile.bad())
+			{
+				seed::log::DumpLog(seed::log::Critical, "Can NOT open file %s!", i_cFilePath.c_str());
+				return 0;
+			}
+			outfile << "<?xml version=\"1.0\" encoding=\"utf - 8\"?>\n";
+			outfile << "<ModelMetadata version=\"1\">\n";
+			outfile << "	<SRS>\n";
+			outfile << "		<WKT>" << m_oPointVisitor->GetSRSName() << "</WKT>\n";
+			outfile << "	</SRS>\n";
+			outfile << "	<SRSOrigin>0, 0, 0</SRSOrigin>\n";
+			outfile << "	<Texture>\n";
+			outfile << "		<ColorSource>Visible</ColorSource>\n";
+			outfile << "	</Texture>\n";
+			outfile << "</ModelMetadata>\n";
+			if (outfile.bad())
+			{
+				seed::log::DumpLog(seed::log::Critical, "An error has occurred while writing file %s!", i_cFilePath.c_str());
+				return 0;
+			}
 			return 1;
 		}
 	}

@@ -5,44 +5,13 @@
 #include <string>
 #include <assert.h>
 #include "tinyxml.h" 
+#include "core.h" 
 
 typedef unsigned char IntentType;
 const int IntenDim = 3;
 
 namespace seed
 {
-	namespace log
-	{
-		enum LogType
-		{
-			Debug = 0,
-			Warning = 1,
-			Critical = 2,
-			Fatal = 3,
-			Info = 4
-		};
-
-		bool DumpLog(const int&		i_nType,	// log type
-			const char*		i_cFormat,
-			...);
-	}
-
-	namespace progress
-	{
-		void UpdateProgress(int value);
-	}
-
-	namespace utils
-	{
-		bool CheckOrCreateFolder(const std::string& i_strDir);
-		bool FileExists(const std::string& i_strPath);
-		unsigned char Color8Bits(uint16_t color16Bit);
-
-		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, const char* pszText);
-		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, double doubText);
-		int AddLeafNode(TiXmlNode* pElmParent, const char* pszNode, int intText);
-	}
-
 	struct Point3F
 	{
 		Point3F() {}

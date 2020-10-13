@@ -12,6 +12,11 @@ namespace seed
 {
 	namespace io {
 
+		unsigned char Color8Bits(uint16_t color16Bit)
+		{
+			return (color16Bit < 256) ? color16Bit : static_cast<unsigned char>((color16Bit / 65535.0)*255.0);
+		};
+
 		//////////////////////////// Points Reader ///////////////////////
 		class PointsReader
 		{
@@ -170,10 +175,10 @@ namespace seed
 				pt.P[2] = m_pointRead->Z * m_laszipHeader->z_scale_factor;
 
 				auto& rgb = m_pointRead->rgb;
-				pt.C[0] = utils::Color8Bits(rgb[0]);
-				pt.C[1] = utils::Color8Bits(rgb[1]);
-				pt.C[2] = utils::Color8Bits(rgb[2]);
-				pt.I = utils::Color8Bits(m_pointRead->intensity);
+				pt.C[0] = Color8Bits(rgb[0]);
+				pt.C[1] = Color8Bits(rgb[1]);
+				pt.C[2] = Color8Bits(rgb[2]);
+				pt.I = Color8Bits(m_pointRead->intensity);
 
 				m_currentPointId++;
 				return true;
@@ -333,7 +338,7 @@ namespace seed
 			{
 				point.P[k] = l_oVertex.point[k] - m_offset[k];
 				if (m_foundColors)
-					point.C[k] = utils::Color8Bits(l_oVertex.color[k]);
+					point.C[k] = Color8Bits(l_oVertex.color[k]);
 			}
 
 			m_currentPointId++;
@@ -402,11 +407,11 @@ namespace seed
 			ss >> point.P[1];
 			ss >> point.P[2];
 			ss >> color;
-			point.C[0] = utils::Color8Bits(color);
+			point.C[0] = Color8Bits(color);
 			ss >> color;
-			point.C[1] = utils::Color8Bits(color);
+			point.C[1] = Color8Bits(color);
 			ss >> color;
-			point.C[2] = utils::Color8Bits(color);
+			point.C[2] = Color8Bits(color);
 
 			// init offset
 			if (m_currentPointId == 0)
