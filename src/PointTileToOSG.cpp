@@ -289,7 +289,7 @@ namespace seed
 			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, ".osgb");
 			rightPageName.assign(tmpRightPageName);
 			
-			double rangeRatio = 1;
+			double rangeRatio = 4.;
 			double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
 			leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
 			leftPageNode->setFileName(0, leftPageName);
