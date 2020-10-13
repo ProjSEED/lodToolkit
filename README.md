@@ -35,7 +35,6 @@ osgbTo3mx.exe -i E:\Data\Test -o E:\Data\Test_3mx
 
 ## Thirdparty (source codes included for convenience):
 - [LASzip](https://github.com/LASzip/LASzip)
-- [TinyXML](https://github.com/leethomason/tinyxml2)
 - [openCTM-1.0.3](http://openctm.sourceforge.net/)
 - [cJsonObject-1.2](https://github.com/Bwar/CJsonObject)
 - PlyIO
