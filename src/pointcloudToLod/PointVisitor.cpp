@@ -24,17 +24,17 @@ namespace seed
 			PointsReader(const std::string& filename);
 			~PointsReader() {}
 			virtual bool Init() = 0;
-			virtual bool ReadNextPoint(OSGBPoint& point) = 0;
+			virtual bool ReadNextPoint(PointCI& point) = 0;
 			size_t GetPointsCount() { return m_pointCount; }
 			size_t GetCurrentPointId() { return m_currentPointId; }
-			Point3F GetOffset() { return m_offset; } // set first point as offset
+			osg::Vec3d GetOffset() { return m_offset; } // set first point as offset
 			std::string GetSRS() { return m_srsName; }
 
 		protected:
 			std::string m_filename;
 			size_t m_pointCount;
 			size_t m_currentPointId;
-			Point3F m_offset;
+			osg::Vec3d m_offset;
 			std::string m_srsName;
 		};
 
@@ -55,7 +55,7 @@ namespace seed
 			LazReader(const std::string& filename);
 			bool Init() override;
 			~LazReader();
-			bool ReadNextPoint(OSGBPoint& point) override;
+			bool ReadNextPoint(PointCI& point) override;
 
 		private:
 			laszip_point* m_pointRead;//current reading point
@@ -150,7 +150,7 @@ namespace seed
 			return true;
 		}
 
-		bool LazReader::ReadNextPoint(OSGBPoint& pt)
+		bool LazReader::ReadNextPoint(PointCI& pt)
 		{
 			if (m_currentPointId < m_pointCount)
 			{
@@ -194,7 +194,7 @@ namespace seed
 			PlyReader(const std::string& filename);
 			bool Init() override;
 			~PlyReader();
-			bool ReadNextPoint(OSGBPoint& point) override;
+			bool ReadNextPoint(PointCI& point) override;
 
 		private:
 			PlyFile *m_plyFile;
@@ -320,7 +320,7 @@ namespace seed
 			return true;
 		}
 
-		bool PlyReader::ReadNextPoint(OSGBPoint& point)
+		bool PlyReader::ReadNextPoint(PointCI& point)
 		{
 			if (m_currentPointId >= m_pointCount) return false;
 			PlyValueOrientedColorVertex<float> l_oVertex;
@@ -352,7 +352,7 @@ namespace seed
 			XYZRGBReader(const std::string& filename);
 			bool Init() override;
 			~XYZRGBReader();
-			bool ReadNextPoint(OSGBPoint& point) override;
+			bool ReadNextPoint(PointCI& point) override;
 
 		private:
 			std::ifstream m_xyzFile;
@@ -392,7 +392,7 @@ namespace seed
 			return true;
 		}
 
-		bool XYZRGBReader::ReadNextPoint(OSGBPoint& point)
+		bool XYZRGBReader::ReadNextPoint(PointCI& point)
 		{
 			if (m_currentPointId >= m_pointCount) return false;
 			std::string line;
@@ -449,14 +449,14 @@ namespace seed
 				seed::log::DumpLog(seed::log::Info, "Run statistic");
 
 				// bbox and offset
-				OSGBPoint l_oPoint;
+				PointCI l_oPoint;
 				this->m_bbox.init();
 				while (m_pointsReader->ReadNextPoint(l_oPoint))
 				{
-					this->m_bbox.expandBy(osg::Vec3(l_oPoint.P.X(), l_oPoint.P.Y(), l_oPoint.P.Z()));
+					this->m_bbox.expandBy(l_oPoint.P);
 				}
-				Point3F l_offset = m_pointsReader->GetOffset();
-				seed::log::DumpLog(seed::log::Info, "Offset: %f, %f, %f", l_offset.X(), l_offset.Y(), l_offset.Z());
+				osg::Vec3d l_offset = m_pointsReader->GetOffset();
+				seed::log::DumpLog(seed::log::Info, "Offset: %f, %f, %f", l_offset.x(), l_offset.y(), l_offset.z());
 				seed::log::DumpLog(seed::log::Info, "LocalMin: %f, %f, %f", this->m_bbox.xMin(), this->m_bbox.yMin(), this->m_bbox.zMin());
 				seed::log::DumpLog(seed::log::Info, "LocalMax: %f, %f, %f", this->m_bbox.xMax(), this->m_bbox.yMax(), this->m_bbox.zMax());
 
@@ -468,7 +468,7 @@ namespace seed
 				int histogram[256] = { 0 };
 				while (m_pointsReader->ReadNextPoint(l_oPoint))
 				{
-					int index = (l_oPoint.P.Z() - this->m_bbox.zMin()) / (this->m_bbox.zMax() - this->m_bbox.zMin()) * 255.;
+					int index = (l_oPoint.P.z() - this->m_bbox.zMin()) / (this->m_bbox.zMax() - this->m_bbox.zMin()) * 255.;
 					index = std::max(0, std::min(255, index));
 					histogram[index]++;
 				}
@@ -534,14 +534,14 @@ namespace seed
 			return m_pointsReader->GetSRS();
 		}
 
-		int PointVisitor::NextPoint(OSGBPoint& i_oPoint)
+		int PointVisitor::NextPoint(PointCI& i_oPoint)
 		{
 			if (!m_pointsReader->ReadNextPoint(i_oPoint)) return -1;
 
 			return 1;
 		}
 
-		Point3F PointVisitor::GetOffset()
+		osg::Vec3d PointVisitor::GetOffset()
 		{
 			return m_pointsReader->GetOffset();
 		}

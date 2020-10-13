@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "pointCI.h"
 
 #include <osg/BoundingBox>
 #include <osg/ref_ptr>
@@ -38,6 +38,14 @@ namespace seed
 			double min;
 		};
 
+		enum ColorMode
+		{
+			RGB = 0,
+			IntensityGrey = 1,
+			IntensityBlueWhiteRed = 2,
+			IntensityHeightBlend = 3
+		};
+
 		class PointTileToOSG
 		{
 		public:
@@ -59,7 +67,7 @@ namespace seed
 
 			void CreateColorBar();
 
-			bool Generate(const std::vector<OSGBPoint> *pointSet,
+			bool Generate(const std::vector<PointCI> *pointSet,
 				const std::string& saveFilePath, const std::string& strBlock);
 
 		protected:
@@ -73,7 +81,7 @@ namespace seed
 
 			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
 
-			bool BuildNode(const std::vector<OSGBPoint> *pointSet,
+			bool BuildNode(const std::vector<PointCI> *pointSet,
 				std::vector<unsigned int> &pointIndex,
 				osg::BoundingBox boundingBox,
 				osg::BoundingBox boundingBoxLevel0,
@@ -82,7 +90,7 @@ namespace seed
 				unsigned int level,
 				unsigned int childNo);
 
-			osg::Geode *MakeNodeGeode(const std::vector<OSGBPoint> *pointSet,
+			osg::Geode *MakeNodeGeode(const std::vector<PointCI> *pointSet,
 				std::vector<unsigned int> &pointIndex);
 		};
 

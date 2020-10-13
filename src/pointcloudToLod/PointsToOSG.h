@@ -31,7 +31,7 @@ namespace seed
 			// private member functions
 
 			bool LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-				std::vector<OSGBPoint>& i_lstPoints);
+				std::vector<PointCI>& i_lstPoints);
 
 			int ExportSRS(const std::string& i_cFilePath);
 
@@ -45,7 +45,6 @@ namespace seed
 			unsigned int m_nMaxPointNumPerOneNode;
 			double m_dLodRatio;
 			float m_fPointSize;
-			ColorMode m_eColorMode;
 
 			std::shared_ptr<PointVisitor> m_oPointVisitor;
 		};

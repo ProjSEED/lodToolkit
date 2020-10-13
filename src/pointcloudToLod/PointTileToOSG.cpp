@@ -81,7 +81,7 @@ namespace seed
 			return maxAxisInfo;
 		}
 
-		bool PointTileToOSG::Generate(const std::vector<OSGBPoint> *pointSet,
+		bool PointTileToOSG::Generate(const std::vector<PointCI> *pointSet,
 			const std::string& saveFilePath, const std::string& strBlock)
 		{
 			std::vector<unsigned int> pointIndex;
@@ -89,8 +89,7 @@ namespace seed
 			for (int i = 0; i < pointSet->size(); i++)
 			{
 				pointIndex.push_back(i);
-				OSGBPoint tmpPoint = pointSet->at(i);
-				boundingBox.expandBy(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
+				boundingBox.expandBy(pointSet->at(i).P);
 			}
 			try
 			{
@@ -105,7 +104,7 @@ namespace seed
 			return true;
 		}
 
-		osg::Geode *PointTileToOSG::MakeNodeGeode(const std::vector<OSGBPoint> *pointSet,
+		osg::Geode *PointTileToOSG::MakeNodeGeode(const std::vector<PointCI> *pointSet,
 			std::vector<unsigned int> &pointIndex)
 		{
 			if (pointIndex.size() <= 0)
@@ -121,8 +120,8 @@ namespace seed
 			
 			for (std::vector<unsigned int>::iterator i = pointIndex.begin(); i != pointIndex.end(); i++)
 			{
-				OSGBPoint tmpPoint = pointSet->at(*i);
-				pointArray->push_back(osg::Vec3(tmpPoint.P.X(), tmpPoint.P.Y(), tmpPoint.P.Z()));
+				PointCI tmpPoint = pointSet->at(*i);
+				pointArray->push_back(tmpPoint.P);
 				if (_colorMode == ColorMode::RGB)
 				{
 					colorArray->push_back(
@@ -141,7 +140,7 @@ namespace seed
 				}
 				else if (_colorMode == ColorMode::IntensityHeightBlend)
 				{
-					float x = (tmpPoint.P.Z() - this->_boundingBoxGlobal.zMin()) / (this->_boundingBoxGlobal.zMax() - this->_boundingBoxGlobal.zMin());
+					float x = (tmpPoint.P.z() - this->_boundingBoxGlobal.zMin()) / (this->_boundingBoxGlobal.zMax() - this->_boundingBoxGlobal.zMin());
 					//// sigmoid
 					//x = (x - 0.5) * 4;
 					//x = 1. / (1. + exp(-5 * x));
@@ -173,7 +172,7 @@ namespace seed
 			return geode.release();
 		}
 
-		bool PointTileToOSG::BuildNode(const std::vector<OSGBPoint> *pointSet,
+		bool PointTileToOSG::BuildNode(const std::vector<PointCI> *pointSet,
 			std::vector<unsigned int> &pointIndex,
 			osg::BoundingBox boundingBox,
 			osg::BoundingBox boundingBoxLevel0,
@@ -261,7 +260,7 @@ namespace seed
 				}
 				else
 				{
-					OSGBPoint tmpPoint = pointSet->at(pointIndex[i]);
+					PointCI tmpPoint = pointSet->at(pointIndex[i]);
 					if (tmpPoint.P[int(maxAxisInfo.aixType)] > mid)
 					{
 						rightPointSetIndex.push_back(pointIndex[i]);

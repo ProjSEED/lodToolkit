@@ -1,4 +1,4 @@
-#include "Common.h"
+#include "pointCI.h"
 #include <osg/BoundingBox>
 
 namespace seed
@@ -13,9 +13,9 @@ namespace seed
 
 			bool PerpareFile(const std::string& i_filePath, bool runStatistic);
 
-			int NextPoint(OSGBPoint& i_oPoint);	// >= 1 normal, 0 end, -1 error
+			int NextPoint(PointCI& i_oPoint);	// >= 1 normal, 0 end, -1 error
 
-			Point3F GetOffset();
+			osg::Vec3d GetOffset();
 			osg::BoundingBox GetBBox() { return m_bbox; }
 			osg::BoundingBox GetBBoxZHistogram() { return m_bboxZHistogram; }
 			

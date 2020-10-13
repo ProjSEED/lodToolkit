@@ -24,21 +24,22 @@ namespace seed
 		{
 			seed::progress::UpdateProgress(1);
 			// check color mode
+			ColorMode l_eColorMode;
 			if (i_strColorMode == "rgb")
 			{
-				m_eColorMode = ColorMode::RGB;
+				l_eColorMode = ColorMode::RGB;
 			}
 			else if (i_strColorMode == "iGrey")
 			{
-				m_eColorMode = ColorMode::IntensityGrey;
+				l_eColorMode = ColorMode::IntensityGrey;
 			}
 			else if (i_strColorMode == "iBlueWhiteRed")
 			{
-				m_eColorMode = ColorMode::IntensityBlueWhiteRed;
+				l_eColorMode = ColorMode::IntensityBlueWhiteRed;
 			}
 			else if (i_strColorMode == "iHeightBlend")
 			{
-				m_eColorMode = ColorMode::IntensityHeightBlend;
+				l_eColorMode = ColorMode::IntensityHeightBlend;
 			}
 			else
 			{
@@ -48,7 +49,7 @@ namespace seed
 
 			// check input
 			m_oPointVisitor = std::shared_ptr<PointVisitor>(new PointVisitor);
-			if (!m_oPointVisitor->PerpareFile(i_filePathInput, m_eColorMode == ColorMode::IntensityHeightBlend))
+			if (!m_oPointVisitor->PerpareFile(i_filePathInput, l_eColorMode == ColorMode::IntensityHeightBlend))
 			{
 				seed::log::DumpLog(seed::log::Critical, "Can NOT open file %s", i_filePathInput);
 				return 0;
@@ -64,7 +65,7 @@ namespace seed
 			{
 				return 0;
 			}
-			std::vector<OSGBPoint> l_lstPoints;
+			std::vector<PointCI> l_lstPoints;
 			l_lstPoints.reserve(this->m_nTileSize);
 			seed::progress::UpdateProgress(10);
 
@@ -75,7 +76,7 @@ namespace seed
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
-				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, m_oPointVisitor->GetBBoxZHistogram(), this->m_eColorMode);
+				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, m_oPointVisitor->GetBBoxZHistogram(), l_eColorMode);
 				std::string outPutFileFullName;
 				char cBlock[16];
 				itoa(l_nTileID, cBlock, 10);
@@ -120,7 +121,7 @@ namespace seed
 				std::string mainName = i_cFilePathOutput + "/Root.osgb";
 				osg::ref_ptr<osg::MatrixTransform> pRoot = new osg::MatrixTransform();
 				auto l_oOffset = m_oPointVisitor->GetOffset();
-				pRoot->setMatrix(osg::Matrix::translate(l_oOffset.X(), l_oOffset.Y(), l_oOffset.Z()));
+				pRoot->setMatrix(osg::Matrix::translate(l_oOffset.x(), l_oOffset.y(), l_oOffset.z()));
 				osg::ProxyNode* pProxyNode = new osg::ProxyNode();
 				pProxyNode->setCenter(m_oPointVisitor->GetBBox().center());
 				pProxyNode->setRadius(m_oPointVisitor->GetBBox().radius());
@@ -151,7 +152,7 @@ namespace seed
 		}
 
 		bool PointsToOSG::LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
-			std::vector<OSGBPoint>& i_lstPoints)
+			std::vector<PointCI>& i_lstPoints)
 		{
 			i_lstPoints.clear();
 			size_t l_nCount = 0;
@@ -163,7 +164,7 @@ namespace seed
 				l_nTileSize = i_oPointVisitor->GetNumOfPoints() - this->m_nProcessedPoints;
 			}
 
-			OSGBPoint l_oPoint;
+			PointCI l_oPoint;
 			while (l_nCount < l_nTileSize)
 			{
 				int l_nFlag = i_oPointVisitor->NextPoint(l_oPoint);
