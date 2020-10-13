@@ -1,31 +1,30 @@
 # lodToolkit
 - level-of-details toolkit(LTK)
 
-## App
-### pointcloudToLod
+## pointcloudToLod
 - Convert point cloud in *ply/las/laz/xyz* format to *osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* lod tree, so that the point cloud could be loaded instantly.
 > This program could handle extremely large point cloud as *ply/las/laz/xyz* file is streaming to the convertor.
 
-### meshToLod
+## meshToLod
 - Convert mesh in *obj* format to *osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* lod tree, so that the mesh could be loaded instantly.
 > This program only support *obj* format mesh with group info, each group will be a tile in the lod tree.
 
-### osgbTo3mx
+## osgbTo3mx
 - Convert *osgb* lod tree to Bentley ContextCapture *[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* tree.
 
-#### How to use
+### How to use
 ```
 osgbTo3mx.exe --input <DIR> --output <DIR>
 	-i, --input <DIR> 
 	-o, --output <DIR> 
 ```
 
-#### Example
+### Example
 ```
 osgbTo3mx.exe -i E:\Data\Test -o E:\Data\Test_3mx
 ```
 
-#### The input dir should look like this
+### The input dir should look like this
 ```
 --metadata.xml
 
