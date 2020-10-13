@@ -3,15 +3,15 @@
 
 ## App
 ### pointcloudToLod
-- Convert point cloud in PLY/LAS/LAZ/XYZ format to osgb/3mx lod tree, so that the point cloud could be loaded instantly.
+- Convert point cloud in PLY/LAS/LAZ/XYZ format to osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)  lod tree, so that the point cloud could be loaded instantly.
 > This program could handle extremely large point cloud as PLY/LAS/LAZ/XYZ file is streaming to the convertor.
 
 ### meshToLod
-- Convert mesh in OBJ format to osgb/3mx lod tree, so that the mesh could be loaded instantly.
+- Convert mesh in OBJ format to osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)  lod tree, so that the mesh could be loaded instantly.
 > This program only support OBJ format mesh with group info, each group will be a tile in the lod tree.
 
 ### osgbTo3mx
-- Convert OSGB PagedLOD tree to Bentley ContextCapture [3MX/3MXB](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html) tree.
+- Convert osgb lod tree to Bentley ContextCapture [3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html) tree.
 
 #### How to use
 ```
