@@ -46,10 +46,16 @@ namespace seed
 			IntensityHeightBlend = 3
 		};
 
-		class PointTileToOSG
+		enum ExportMode
+		{
+			OSGB = 0,
+			_3MX = 1
+		};
+
+		class TileToLOD
 		{
 		public:
-			PointTileToOSG(unsigned int maxTreeLevel,
+			TileToLOD(unsigned int maxTreeLevel,
 				unsigned int maxPointNumPerOneNode,
 				double lodRatio,
 				float pointSize, 
@@ -68,7 +74,7 @@ namespace seed
 			void CreateColorBar();
 
 			bool Generate(const std::vector<PointCI> *pointSet,
-				const std::string& saveFilePath, const std::string& strBlock);
+				const std::string& saveFilePath, const std::string& strBlock, ExportMode exportMode, osg::BoundingBox& boundingBoxLevel0);
 
 		protected:
 			unsigned int _maxTreeLevel;
@@ -79,7 +85,7 @@ namespace seed
 			ColorMode _colorMode;
 			osg::Vec4 _colorBar[256];
 
-			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox);
+			AxisInfo FindMaxAxis(osg::BoundingBox boundingBox, osg::BoundingBox& boundingBoxLeft, osg::BoundingBox& boundingBoxRight);
 
 			bool BuildNode(const std::vector<PointCI> *pointSet,
 				std::vector<unsigned int> &pointIndex,
@@ -88,10 +94,11 @@ namespace seed
 				const std::string& saveFilePath,
 				const std::string& strBlock,
 				unsigned int level,
-				unsigned int childNo);
+				unsigned int childNo,
+				ExportMode exportMode);
 
 			osg::Geode *MakeNodeGeode(const std::vector<PointCI> *pointSet,
-				std::vector<unsigned int> &pointIndex);
+				std::vector<unsigned int> &pointIndex, ExportMode exportMode);
 		};
 
 	};

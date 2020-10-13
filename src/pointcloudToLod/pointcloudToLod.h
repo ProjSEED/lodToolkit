@@ -8,23 +8,21 @@ namespace seed
 {
 	namespace io
 	{
-		class PointVisitor;
-
-		class PointsToOSG
+		class PointCloudToLOD
 		{
 		public:
 			///////////////////////////////////////
 			// constructors and destructor
 
-			PointsToOSG(int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
+			PointCloudToLOD(int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
 				float i_dLodRatio, float i_fPointSize);
 
-			~PointsToOSG();
+			~PointCloudToLOD();
 			
 			///////////////////////////////////////
 			// public member functions
 
-			int Write(const std::string& i_filePathInput, const std::string& i_cFilePathOutput, std::string i_strColorMode);
+			int Export(const std::string& i_exportMode, const std::string& i_filePathInput, const std::string& i_cFilePathOutput, std::string i_strColorMode);
 
 		private:
 			///////////////////////////////////////
@@ -33,7 +31,7 @@ namespace seed
 			bool LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
 				std::vector<PointCI>& i_lstPoints);
 
-			int ExportSRS(const std::string& i_cFilePath);
+			static bool ExportSRS(const std::string& srs, const std::string& i_cFilePath);
 
 
 			///////////////////////////////////////

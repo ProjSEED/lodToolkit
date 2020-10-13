@@ -1,12 +1,12 @@
-#include "PointsToOSG.h"
-#include "PointTileToOSG.h"
+#include "pointcloudToLod.h"
+#include "tileToLod.h"
 
 namespace seed
 {
 	namespace io
 	{
 
-		PointsToOSG::PointsToOSG(int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
+		PointCloudToLOD::PointCloudToLOD(int i_nTileSize, int i_nMaxPointNumPerOneNode, int i_nMaxTreeDepth,
 			float i_dLodRatio, float i_fPointSize) :
 			m_nProcessedPoints(0),
 			m_nTileSize(i_nTileSize), m_nMaxPointNumPerOneNode(i_nMaxPointNumPerOneNode), m_nMaxTreeDepth(i_nMaxTreeDepth),
@@ -15,12 +15,12 @@ namespace seed
 			
 		}
 
-		PointsToOSG::~PointsToOSG()
+		PointCloudToLOD::~PointCloudToLOD()
 		{
 
 		}
 
-		int PointsToOSG::Write(const std::string& i_filePathInput, const std::string& i_cFilePathOutput, std::string i_strColorMode)
+		int PointCloudToLOD::Export(const std::string& i_exportMode, const std::string& i_filePathInput, const std::string& i_cFilePathOutput, std::string i_strColorMode)
 		{
 			seed::progress::UpdateProgress(1);
 			// check color mode
@@ -46,6 +46,21 @@ namespace seed
 				seed::log::DumpLog(seed::log::Critical, "ColorMode %s is NOT supported now.", i_strColorMode.c_str());
 				return 0;
 			}
+			// check export mode
+			ExportMode l_eExportMode;
+			if (i_exportMode == "osgb")
+			{
+				l_eExportMode = ExportMode::OSGB;
+			}
+			else if (i_exportMode == "3mx")
+			{
+				l_eExportMode = ExportMode::_3MX;
+			}
+			else
+			{
+				seed::log::DumpLog(seed::log::Critical, "Mode %s is NOT support!", i_exportMode.c_str());
+				return 0;
+			}
 
 			// check input
 			m_oPointVisitor = std::shared_ptr<PointVisitor>(new PointVisitor);
@@ -56,7 +71,7 @@ namespace seed
 			}
 
 			// check output
-			if(seed::utils::CheckOrCreateFolder(i_cFilePathOutput) == false)
+			if (seed::utils::CheckOrCreateFolder(i_cFilePathOutput) == false)
 			{
 				return 0;
 			}
@@ -71,12 +86,14 @@ namespace seed
 
 			this->m_nProcessedPoints = 0;
 			size_t l_nTileID = 0;
-			std::vector<std::string> l_lstTileFiles;
+			std::vector<std::string> tileIds;
+			std::vector<std::string> tileRelativePaths;
+			std::vector<osg::BoundingBox> tileBBoxes;
 			size_t l_nTileCount = std::round(m_oPointVisitor->GetNumOfPoints() / (double)m_nTileSize);
 			while (this->LoadPointsForOneTile(m_oPointVisitor, l_lstPoints))
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate [%d/%d] tile...", l_nTileID + 1, l_nTileCount);
-				std::shared_ptr<PointTileToOSG> lodGenerator = std::make_shared<PointTileToOSG>(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, m_oPointVisitor->GetBBoxZHistogram(), l_eColorMode);
+				TileToLOD lodGenerator(this->m_nMaxTreeDepth, this->m_nMaxPointNumPerOneNode, this->m_dLodRatio, this->m_fPointSize, m_oPointVisitor->GetBBoxZHistogram(), l_eColorMode);
 				std::string outPutFileFullName;
 				char cBlock[16];
 				itoa(l_nTileID, cBlock, 10);
@@ -90,21 +107,37 @@ namespace seed
 
 				try
 				{
-					lodGenerator->Generate(&l_lstPoints, outPutFileFullName, strBlock);
+					std::string lodName;
+					osg::BoundingBox box;
+					lodGenerator.Generate(&l_lstPoints, outPutFileFullName, strBlock, l_eExportMode, box);
+					if (l_eExportMode == ExportMode::OSGB)
+					{
+						lodName = strBlock + "/" + strBlock + ".osgb";
+					}
+					else if (l_eExportMode == ExportMode::_3MX)
+					{
+						lodName = strBlock + "/" + strBlock + ".3mxb";
+					}
+					else
+					{
+						seed::log::DumpLog(seed::log::Critical, "Mode %d is NOT support!", l_eExportMode);
+						return 0;
+					}
+
+					std::string fullPath = filePathData + "/" + lodName;
+					if (seed::utils::FileExists(fullPath))
+					{
+						tileIds.push_back(strBlock);
+						tileRelativePaths.push_back(lodName);
+						tileBBoxes.push_back(box);
+					}
+
 					this->m_nProcessedPoints += l_lstPoints.size();
 				}
 				catch (...)
 				{
 					seed::log::DumpLog(seed::log::Critical, "Generate point tiles failed!");
 					return 0;
-				}
-
-				std::string lodName = strBlock + "/" + strBlock + ".osgb";
-
-				std::string fullPath = filePathData + "/" + lodName;
-				if (seed::utils::FileExists(fullPath))
-				{
-					l_lstTileFiles.push_back("./Data/" + lodName);
 				}
 
 				l_nTileID++;
@@ -116,6 +149,7 @@ namespace seed
 				seed::progress::UpdateProgress(l_nPos);
 			}
 			/////////////////////////////////////////////////////////////////////////
+			if (l_eExportMode == ExportMode::OSGB)
 			{
 				seed::log::DumpLog(seed::log::Debug, "Generate root node...");
 				std::string mainName = i_cFilePathOutput + "/Root.osgb";
@@ -126,8 +160,8 @@ namespace seed
 				pProxyNode->setCenter(m_oPointVisitor->GetBBox().center());
 				pProxyNode->setRadius(m_oPointVisitor->GetBBox().radius());
 				pProxyNode->setLoadingExternalReferenceMode(osg::ProxyNode::LOAD_IMMEDIATELY);
-				for (int i = 0; i < l_lstTileFiles.size(); i++) {
-					pProxyNode->setFileName(i, l_lstTileFiles[i]);
+				for (int i = 0; i < tileRelativePaths.size(); i++) {
+					pProxyNode->setFileName(i, "./Data/" + tileRelativePaths[i]);
 				}
 				pRoot->addChild(pProxyNode);
 				osg::ref_ptr<osgDB::Options> pOpt = new osgDB::Options("precision=15");
@@ -142,16 +176,44 @@ namespace seed
 				{
 					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", mainName.c_str());
 				}
+				std::string xmlName = i_cFilePathOutput + "/metadata.xml";
+				ExportSRS(m_oPointVisitor->GetSRSName(), xmlName);
+			}
+			else if (l_eExportMode == ExportMode::_3MX)
+			{
+				std::string output3mx = i_cFilePathOutput + "/Root.3mx";
+				std::string outputDataRootRelative = "Data/Root.3mxb";
+				std::string outputDataRoot = i_cFilePathOutput + "/" + outputDataRootRelative;
+				std::string outputMetadata = i_cFilePathOutput + "/metadata.xml";
+				if (!Generate3mxbRoot(tileIds, tileRelativePaths, tileBBoxes, outputDataRoot))
+				{
+					seed::log::DumpLog(seed::log::Critical, "Generate %s failed!", outputDataRoot.c_str());
+					return false;
+				}
+
+				if (!Generate3mxMetadata(outputMetadata))
+				{
+					seed::log::DumpLog(seed::log::Critical, "Generate %s failed!", outputMetadata.c_str());
+					return false;
+				}
+
+				if (!Generate3mx(m_oPointVisitor->GetSRSName(), m_oPointVisitor->GetOffset(), outputDataRootRelative, output3mx))
+				{
+					seed::log::DumpLog(seed::log::Critical, "Generate %s failed!", outputMetadata.c_str());
+					return false;
+				}
+			}
+			else
+			{
+				seed::log::DumpLog(seed::log::Critical, "Mode %d is NOT support!", l_eExportMode);
+				return 0;
 			}
 
-			/////////////////////////////////////////////////////////////////////////
-			std::string xmlName = i_cFilePathOutput + "/metadata.xml";
-			this->ExportSRS(xmlName);
 			seed::progress::UpdateProgress(100);
 			return 1;
 		}
 
-		bool PointsToOSG::LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
+		bool PointCloudToLOD::LoadPointsForOneTile(std::shared_ptr<PointVisitor> i_oPointVisitor,
 			std::vector<PointCI>& i_lstPoints)
 		{
 			i_lstPoints.clear();
@@ -192,18 +254,18 @@ namespace seed
 			}
 		}
 
-		int PointsToOSG::ExportSRS(const std::string& i_cFilePath)
+		bool PointCloudToLOD::ExportSRS(const std::string& srs, const std::string& i_cFilePath)
 		{
 			std::ofstream outfile(i_cFilePath);
 			if (outfile.bad())
 			{
 				seed::log::DumpLog(seed::log::Critical, "Can NOT open file %s!", i_cFilePath.c_str());
-				return 0;
+				return false;
 			}
 			outfile << "<?xml version=\"1.0\" encoding=\"utf - 8\"?>\n";
 			outfile << "<ModelMetadata version=\"1\">\n";
 			outfile << "	<SRS>\n";
-			outfile << "		<WKT>" << m_oPointVisitor->GetSRSName() << "</WKT>\n";
+			outfile << "		<WKT>" << srs << "</WKT>\n";
 			outfile << "	</SRS>\n";
 			outfile << "	<SRSOrigin>0, 0, 0</SRSOrigin>\n";
 			outfile << "	<Texture>\n";
@@ -213,9 +275,9 @@ namespace seed
 			if (outfile.bad())
 			{
 				seed::log::DumpLog(seed::log::Critical, "An error has occurred while writing file %s!", i_cFilePath.c_str());
-				return 0;
+				return false;
 			}
-			return 1;
+			return true;
 		}
 	}
 }

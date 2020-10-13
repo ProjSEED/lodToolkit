@@ -1,10 +1,10 @@
-#include "PointTileToOSG.h"
+#include "tileToLOD.h"
 
 namespace seed
 {
 	namespace io
 	{
-		void PointTileToOSG::CreateColorBar()
+		void TileToLOD::CreateColorBar()
 		{
 			std::vector<osg::Vec4> steps;
 			if (_colorMode == ColorMode::IntensityGrey)
@@ -54,7 +54,7 @@ namespace seed
 			}
 		}
 
-		AxisInfo PointTileToOSG::FindMaxAxis(osg::BoundingBox boundingBox)
+		AxisInfo TileToLOD::FindMaxAxis(osg::BoundingBox boundingBox, osg::BoundingBox& boundingBoxLeft, osg::BoundingBox& boundingBoxRight)
 		{
 			AxisInfo maxAxisInfo;
 			double xLen = boundingBox.xMax() - boundingBox.xMin();
@@ -78,11 +78,34 @@ namespace seed
 				maxAxisInfo.max = boundingBox.zMax();
 				maxAxisInfo.min = boundingBox.zMin();
 			}
+
+			boundingBoxRight.init();
+			boundingBoxLeft.init();
+
+			boundingBoxLeft = boundingBox;
+			boundingBoxRight = boundingBox;
+
+			double mid = (maxAxisInfo.max + maxAxisInfo.min) / 2;
+			if (maxAxisInfo.aixType == X)
+			{
+				boundingBoxLeft._max[0] = mid;
+				boundingBoxRight._min[0] = mid;
+			}
+			else if (maxAxisInfo.aixType == Y)
+			{
+				boundingBoxLeft._max[1] = mid;
+				boundingBoxRight._min[1] = mid;
+			}
+			else
+			{
+				boundingBoxLeft._max[2] = mid;
+				boundingBoxRight._min[2] = mid;
+			}
 			return maxAxisInfo;
 		}
 
-		bool PointTileToOSG::Generate(const std::vector<PointCI> *pointSet,
-			const std::string& saveFilePath, const std::string& strBlock)
+		bool TileToLOD::Generate(const std::vector<PointCI> *pointSet,
+			const std::string& saveFilePath, const std::string& strBlock, ExportMode exportMode, osg::BoundingBox& boundingBoxLevel0)
 		{
 			std::vector<unsigned int> pointIndex;
 			osg::BoundingBox boundingBox;
@@ -91,9 +114,10 @@ namespace seed
 				pointIndex.push_back(i);
 				boundingBox.expandBy(pointSet->at(i).P);
 			}
+			boundingBoxLevel0 = boundingBox;
 			try
 			{
-				BuildNode(pointSet, pointIndex, boundingBox, boundingBox, saveFilePath, strBlock, 0, 0);
+				BuildNode(pointSet, pointIndex, boundingBox, boundingBox, saveFilePath, strBlock, 0, 0, exportMode);
 				pointIndex.swap(std::vector<unsigned int>());
 			}
 			catch (...)
@@ -104,8 +128,8 @@ namespace seed
 			return true;
 		}
 
-		osg::Geode *PointTileToOSG::MakeNodeGeode(const std::vector<PointCI> *pointSet,
-			std::vector<unsigned int> &pointIndex)
+		osg::Geode *TileToLOD::MakeNodeGeode(const std::vector<PointCI> *pointSet,
+			std::vector<unsigned int> &pointIndex, ExportMode exportMode)
 		{
 			if (pointIndex.size() <= 0)
 			{
@@ -172,84 +196,92 @@ namespace seed
 			return geode.release();
 		}
 
-		bool PointTileToOSG::BuildNode(const std::vector<PointCI> *pointSet,
+		bool TileToLOD::BuildNode(const std::vector<PointCI> *pointSet,
 			std::vector<unsigned int> &pointIndex,
 			osg::BoundingBox boundingBox,
 			osg::BoundingBox boundingBoxLevel0,
 			const std::string& saveFilePath,
 			const std::string& strBlock,
 			unsigned int level,
-			unsigned int childNo)
+			unsigned int childNo, 
+			ExportMode exportMode)
 		{
-			osg::ref_ptr<osg::Group> mt(new osg::Group);
+			// format
+			std::string format;
+			if (exportMode == ExportMode::OSGB)
+			{
+				format = ".osgb";
+			}
+			else if (exportMode == ExportMode::_3MX)
+			{
+				format = ".3mxb";
+			}
+			else
+			{
+				seed::log::DumpLog(seed::log::Critical, "Mode %d is NOT support!", exportMode);
+				return false;
+			}
 
-			osg::ref_ptr<osg::Geode> nodeGeode;
-			AxisInfo maxAxisInfo;
-			std::vector<unsigned int> selfPointSetIndex;
-			std::vector<unsigned int> leftPointSetIndex;
-			std::vector<unsigned int> rightPointSetIndex;
-			osg::BoundingBox leftBoundingBox;
-			osg::BoundingBox rightBoundingBox;
+			// filename of self, left, right
 			std::string saveFileName, leftPageName, rightPageName;
-			osg::ref_ptr<osg::PagedLOD>  leftPageNode = new osg::PagedLOD;
-			osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
-
 			if (level == 0)
 			{
-				saveFileName = saveFilePath + "/" + strBlock + ".osgb";
+				saveFileName = saveFilePath + "/" + strBlock + format;
 			}
 			else
 			{
 				char tmpSaveFileName[100];
-				sprintf(tmpSaveFileName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level, "_", childNo, ".osgb");
+				sprintf(tmpSaveFileName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level, "_", childNo, format);
 				saveFileName.assign(tmpSaveFileName);
 				saveFileName = saveFilePath + saveFileName;
 			}
+			char tmpLeftPageName[100], tmpRightPageName[100];
+			sprintf(tmpLeftPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2, format);
+			leftPageName.assign(tmpLeftPageName);
+			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, format);
+			rightPageName.assign(tmpRightPageName);
 
+			// handle leaf case
 			if (pointIndex.size() < _maxPointNumPerOneNode || level >= _maxTreeLevel)
 			{
-				nodeGeode = MakeNodeGeode(pointSet, pointIndex);
-				try
+				osg::ref_ptr<osg::Geode> nodeGeode = MakeNodeGeode(pointSet, pointIndex, exportMode);
+				if (exportMode == ExportMode::OSGB)
 				{
 					if (osgDB::writeNodeFile(*(nodeGeode.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
 					{
 						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+						return false;
 					}
 				}
-				catch (...)
+				else if (exportMode == ExportMode::_3MX)
 				{
-					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+					if(ConvertOsgbTo3mxb(nodeGeode, saveFileName) == false)
+					{
+						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+						return false;
+					}
+				}
+				else
+				{
+					seed::log::DumpLog(seed::log::Critical, "Mode %d is NOT support!", exportMode);
+					return false;
 				}
 				return true;
 			}
 
-			maxAxisInfo = FindMaxAxis(boundingBox);
+			// prepare box
+			AxisInfo maxAxisInfo;
+			osg::BoundingBox leftBoundingBox;
+			osg::BoundingBox rightBoundingBox;
+			maxAxisInfo = FindMaxAxis(boundingBox, leftBoundingBox, rightBoundingBox);
 			double mid = (maxAxisInfo.max + maxAxisInfo.min) / 2;
 
-			rightBoundingBox.init();
-			leftBoundingBox.init();
-
-			leftBoundingBox = boundingBox;
-			rightBoundingBox = boundingBox;
-
-			if (maxAxisInfo.aixType == X)
-			{
-				leftBoundingBox._max[0] = mid;
-				rightBoundingBox._min[0] = mid;
-			}
-			else if (maxAxisInfo.aixType == Y)
-			{
-				leftBoundingBox._max[1] = mid;
-				rightBoundingBox._min[1] = mid;
-			}
-			else
-			{
-				leftBoundingBox._max[2] = mid;
-				rightBoundingBox._min[2] = mid;
-			}
-
+			// split self, left, right
 			float interval = (float)pointIndex.size() / (float)_maxPointNumPerOneNode;
 			int count = -1;
+			std::vector<unsigned int> selfPointSetIndex;
+			std::vector<unsigned int> leftPointSetIndex;
+			std::vector<unsigned int> rightPointSetIndex;
 			for (int i = 0; i < pointIndex.size(); i++)
 			{
 				int tmp = int((float)i / interval);
@@ -271,65 +303,67 @@ namespace seed
 					}
 				}
 			}
-			try
+
+			// export
 			{
-				nodeGeode = MakeNodeGeode(pointSet, selfPointSetIndex);
+				osg::ref_ptr<osg::Group> mt(new osg::Group);
+				osg::ref_ptr<osg::Geode> nodeGeode = MakeNodeGeode(pointSet, selfPointSetIndex, exportMode);
+				mt->addChild(nodeGeode.get());
 				selfPointSetIndex.swap(std::vector<unsigned int>());
-			}
-			catch (...)
-			{
-				seed::log::DumpLog(seed::log::Critical, "Make self node geode error!", saveFileName.c_str());
-				return false;
-			}
 
-			char tmpLeftPageName[100], tmpRightPageName[100];
-			sprintf(tmpLeftPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2, ".osgb");
-			leftPageName.assign(tmpLeftPageName);
-			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, ".osgb");
-			rightPageName.assign(tmpRightPageName);
-			
-			double rangeRatio = 4.;
-			double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
-			leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
-			leftPageNode->setFileName(0, leftPageName);
-			leftPageNode->setRange(0, rangeValue, FLT_MAX);
-			leftPageNode->setCenter(leftBoundingBox.center());
-			leftPageNode->setRadius(leftBoundingBox.radius());
-			rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
-			rightPageNode->setFileName(0, rightPageName);
-			rightPageNode->setRange(0, rangeValue, FLT_MAX);
-			rightPageNode->setCenter(rightBoundingBox.center());
-			rightPageNode->setRadius(rightBoundingBox.radius());
+				double rangeRatio = 4.;
+				double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
 
-			mt->addChild(nodeGeode.get());
-
-			// left
-			if (leftPointSetIndex.size())
-			{
-				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2);
-				leftPointSetIndex.swap(std::vector<unsigned int>());
+				osg::ref_ptr<osg::PagedLOD>  leftPageNode = new osg::PagedLOD;
+				leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
+				leftPageNode->setFileName(0, leftPageName);
+				leftPageNode->setRange(0, rangeValue, FLT_MAX);
+				leftPageNode->setCenter(leftBoundingBox.center());
+				leftPageNode->setRadius(leftBoundingBox.radius());
 				mt->addChild(leftPageNode.get());
-			}
-			// right
-			if (rightPointSetIndex.size())
-			{
-				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2 + 1);
-				rightPointSetIndex.swap(std::vector<unsigned int>());
-				mt->addChild(rightPageNode.get());
-			}
 
-			try
-			{
-				if (osgDB::writeNodeFile(*(mt.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
+				osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
+				rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
+				rightPageNode->setFileName(0, rightPageName);
+				rightPageNode->setRange(0, rangeValue, FLT_MAX);
+				rightPageNode->setCenter(rightBoundingBox.center());
+				rightPageNode->setRadius(rightBoundingBox.radius());
+				mt->addChild(rightPageNode.get());
+				if (exportMode == ExportMode::OSGB)
 				{
-					seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+					if (osgDB::writeNodeFile(*(mt.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
+					{
+						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+						return false;
+					}
+				}
+				else if (exportMode == ExportMode::_3MX)
+				{
+					if (ConvertOsgbTo3mxb(mt, saveFileName) == false)
+					{
+						seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+						return false;
+					}
+				}
+				else
+				{
+					seed::log::DumpLog(seed::log::Critical, "Mode %d is NOT support!", exportMode);
+					return false;
 				}
 			}
-			catch (...)
+
+			// recursive left
+			if (leftPointSetIndex.size())
 			{
-				seed::log::DumpLog(seed::log::Critical, "Write node file %s failed!", saveFileName.c_str());
+				BuildNode(pointSet, leftPointSetIndex, leftBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2, exportMode);
+				leftPointSetIndex.swap(std::vector<unsigned int>());
 			}
-			selfPointSetIndex.swap(std::vector<unsigned int>());
+			// recursive right
+			if (rightPointSetIndex.size())
+			{
+				BuildNode(pointSet, rightPointSetIndex, rightBoundingBox, boundingBoxLevel0, saveFilePath, strBlock, level + 1, childNo * 2 + 1, exportMode);
+				rightPointSetIndex.swap(std::vector<unsigned int>());
+			}
 			return true;
 		}
 	}

@@ -5,6 +5,9 @@
 #include <string>
 #include <assert.h>
 
+#include "osg/BoundingBox"
+#include "osg/Node"
+
 namespace seed
 {
 	namespace log
@@ -32,5 +35,16 @@ namespace seed
 	{
 		bool CheckOrCreateFolder(const std::string& i_strDir);
 		bool FileExists(const std::string& i_strPath);
+	}
+
+	namespace io
+	{
+		bool ConvertOsgbTo3mxb(osg::ref_ptr<osg::Node> osgNode, const std::string& output, osg::BoundingBox* pbb = nullptr);
+
+		bool Generate3mxbRoot(const std::vector<std::string>& tileIds, const std::vector<std::string>& tileRelativePaths, const std::vector<osg::BoundingBox>& tileBBoxes, const std::string& output);
+
+		bool Generate3mxMetadata(const std::string& output);
+
+		bool Generate3mx(const std::string& srs, osg::Vec3d srsOrigin, const std::string& outputDataRootRelative, const std::string& output);
 	}
 }
