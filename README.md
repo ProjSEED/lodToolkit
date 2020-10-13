@@ -33,6 +33,10 @@ osgbTo3mx.exe -i E:\Data\Test -o E:\Data\Test_3mx
 
 ```
 
+## Related project
+- [osgPlugins-3mx](https://github.com/ProjSEED/osgPlugins-3mx)
+- [Unity-3mxb](https://github.com/ProjSEED/Unity-3mxb)
+
 ## Thirdparty (source codes included for convenience):
 - [LASzip](https://github.com/LASzip/LASzip)
 - [openCTM-1.0.3](http://openctm.sourceforge.net/)
