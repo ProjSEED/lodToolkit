@@ -22,7 +22,6 @@ include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
 
 include_directories(./thirdparty/CmdParser/include)
 include_directories(./thirdparty/LASzip/include)
-include_directories(./thirdparty/TinyXml/include)
 include_directories(./thirdparty/PlyIO/include)
 include_directories(./thirdparty/cJsonObject/include)
 include_directories(./thirdparty/openCTM/include)
@@ -32,7 +31,6 @@ add_subdirectory(thirdparty)
 set(THIRDPARTY_LIBS
 	LASzip
 	PlyIO
-	TinyXML
 	cJsonObject
 	openCTM
 	${OPENSCENEGRAPH_LIBRARIES}

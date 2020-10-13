@@ -1,8 +1,6 @@
 #include "PointsToOSG.h"
 #include "PointTileToOSG.h"
 
-#include "tinyxml.h" 
-
 namespace seed
 {
 	namespace io

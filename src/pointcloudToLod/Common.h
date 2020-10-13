@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <assert.h>
-#include "tinyxml.h" 
 #include "core.h" 
 
 typedef unsigned char IntentType;
