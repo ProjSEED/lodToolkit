@@ -213,6 +213,7 @@ namespace seed
 			std::string id;
 
 			std::string texture;
+			float pointSize;
 			osg::BoundingBox bb;
 
 			std::vector<char> bufferData;
@@ -260,6 +261,10 @@ namespace seed
 				if (resource.format == "ctm")
 				{
 					oJson.Add("texture", resource.texture);
+				}
+				else if (resource.format == "xyz")
+				{
+					oJson.Add("pointSize", resource.pointSize);
 				}
 
 				oJson.AddEmptySubArray("bbMin");
@@ -745,6 +750,15 @@ namespace seed
 					resGeometry.format = "xyz";
 					resGeometry.id = "geometry" + std::to_string(resourcesGeometry.size());
 					resGeometry.bb = bb;
+					osg::Point* point = dynamic_cast<osg::Point*>(g->getOrCreateStateSet()->getAttribute(osg::StateAttribute::POINT));
+					if (point)
+					{
+						resGeometry.pointSize =	point->getSize();
+					}
+					else
+					{
+						resGeometry.pointSize = 10.0;
+					}
 					GeometryPointCloudToBuffer(input, g, resGeometry.bufferData);
 
 					resourcesGeometry.emplace_back(resGeometry);
