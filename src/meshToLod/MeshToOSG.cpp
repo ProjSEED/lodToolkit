@@ -1,4 +1,4 @@
-#include "MeshToOSG.h"
+#include "meshToOSG.h"
 
 #include <osg/BoundingBox>
 #include <osg/ref_ptr>

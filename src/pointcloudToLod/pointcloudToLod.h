@@ -1,8 +1,6 @@
 #pragma once
 
-#include "PointVisitor.h"
-
-class TiXmlNode;
+#include "pointVisitor.h"
 
 namespace seed
 {

@@ -1,4 +1,4 @@
-#include "MeshToOSG.h"
+#include "meshToOSG.h"
 #include "cmdparser.hpp"
 
 void configure_parser(cli::Parser& parser) {

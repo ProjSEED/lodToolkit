@@ -1,4 +1,4 @@
-#include "PointVisitor.h"
+#include "pointVisitor.h"
 #include <fstream>
 #include "Ply.h"
 #include "laszip_api.h"
