@@ -8,12 +8,12 @@
 
 ### pointcloudToLod
 - Convert point cloud in *ply/las/laz/xyz* format to *osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* lod tree, so that the point cloud could be loaded instantly.
-> This program could handle extremely large point cloud as *ply/las/laz/xyz* file is streaming to the convertor.
+- This program could handle extremely large point cloud as *ply/las/laz/xyz* file is streaming to the convertor.
 > NOTE: Official 3mx does NOT support pointcloud, this project extended 3mx to make it happen. Please read the code for details. 
 
 ### meshToLod (WIP)
 - Convert mesh in *obj* format to *osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* lod tree, so that the mesh could be loaded instantly.
-> This program only support *obj* format mesh with group info, each group will be a tile in the lod tree.
+- This program only support *obj* format mesh with group info, each group will be a tile in the lod tree.
 
 ![avatar](./doc/pointcloud.jpg)
 
