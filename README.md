@@ -14,6 +14,8 @@
 - Convert mesh in *obj* format to *osgb/[3mx](https://docs.bentley.com/LiveContent/web/ContextCapture%20Help-v9/en/GUID-CED0ABE6-2EE3-458D-9810-D87EC3C521BD.html)* lod tree, so that the mesh could be loaded instantly.
 > This program only support *obj* format mesh with group info, each group will be a tile in the lod tree.
 
+![avatar](./doc/pointcloud.jpg)
+
 ## Doc
 - [How to use](./doc/howToUse.md)
 - [How to build](./doc/howToBuild.md)
