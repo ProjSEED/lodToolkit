@@ -121,7 +121,7 @@ namespace seed
 			{
 				seed::log::DumpLog(seed::log::Warning, "Can NOT open file %s!", input.c_str());
 			}
-			return Generate3mx(srs, srsOrigin, outputDataRootRelative, output);
+			return Generate3mx(srs, srsOrigin, osg::Vec3d(0, 0, 0), outputDataRootRelative, output);
 		}
 
 		bool OsgTo3mx::ConvertTile(const std::string& inputData, const std::string& outputData, const std::string& tileName, osg::BoundingBox& bb)

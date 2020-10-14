@@ -45,6 +45,6 @@ namespace seed
 
 		bool Generate3mxMetadata(const std::string& output);
 
-		bool Generate3mx(const std::string& srs, osg::Vec3d srsOrigin, const std::string& outputDataRootRelative, const std::string& output);
+		bool Generate3mx(const std::string& srs, osg::Vec3d srsOrigin, osg::Vec3d offset, const std::string& outputDataRootRelative, const std::string& output);
 	}
 }

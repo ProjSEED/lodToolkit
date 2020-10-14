@@ -374,7 +374,7 @@ namespace seed
 			return true;
 		}
 
-		bool Generate3mx(const std::string& srs, osg::Vec3d srsOrigin, const std::string& outputDataRootRelative, const std::string& output)
+		bool Generate3mx(const std::string& srs, osg::Vec3d srsOrigin, osg::Vec3d offset, const std::string& outputDataRootRelative, const std::string& output)
 		{
 			neb::CJsonObject oJson;
 			oJson.Add("3mxVersion", 1);
@@ -397,6 +397,10 @@ namespace seed
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.x());
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.y());
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.z());
+			oJsonLayer.AddEmptySubArray("offset");
+			oJsonLayer["offset"].Add(offset.x());
+			oJsonLayer["offset"].Add(offset.y());
+			oJsonLayer["offset"].Add(offset.z());
 			oJsonLayer.Add("root", outputDataRootRelative);
 			oJson.AddEmptySubArray("layers");
 			oJson["layers"].Add(oJsonLayer);

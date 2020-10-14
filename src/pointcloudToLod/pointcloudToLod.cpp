@@ -197,7 +197,7 @@ namespace seed
 					return false;
 				}
 
-				if (!Generate3mx(m_oPointVisitor->GetSRSName(), m_oPointVisitor->GetOffset(), outputDataRootRelative, output3mx))
+				if (!Generate3mx(m_oPointVisitor->GetSRSName(), osg::Vec3d(0, 0, 0), m_oPointVisitor->GetOffset(), outputDataRootRelative, output3mx))
 				{
 					seed::log::DumpLog(seed::log::Critical, "Generate %s failed!", outputMetadata.c_str());
 					return false;
