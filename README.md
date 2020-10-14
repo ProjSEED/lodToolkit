@@ -18,6 +18,9 @@
 - [How to use](./doc/howToUse.md)
 - [How to build](./doc/howToBuild.md)
 
+## Pre-build
+- [Win64](https://github.com/ProjSEED/lodToolkit/releases/download/v1.0/lodToolkit_win64.zip)
+
 ## Related project
 - [osgPlugins-3mx](https://github.com/ProjSEED/osgPlugins-3mx): load *3mx/3mxb* format LOD model files into OpenSceneGraph.
 - [Unity-3mxb](https://github.com/ProjSEED/Unity-3mxb): load *3mx/3mxb* LOD model files into Unity.
