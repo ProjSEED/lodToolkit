@@ -21,7 +21,7 @@
 - [How to build](./doc/howToBuild.md)
 
 ## Pre-build
-- [Win64](https://github.com/ProjSEED/lodToolkit/releases/download/v1.0/lodToolkit_win64.zip)
+- [Win64](https://github.com/ProjSEED/lodToolkit/releases/)
 
 ## Related project
 - [osgPlugins-3mx](https://github.com/ProjSEED/osgPlugins-3mx): load *3mx/3mxb* format LOD model files into OpenSceneGraph.
