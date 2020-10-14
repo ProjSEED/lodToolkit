@@ -26,6 +26,7 @@
 ## Related project
 - [osgPlugins-3mx](https://github.com/ProjSEED/osgPlugins-3mx): load *3mx/3mxb* format LOD model files into OpenSceneGraph.
 - [Unity-3mxb](https://github.com/ProjSEED/Unity-3mxb): load *3mx/3mxb* LOD model files into Unity.
+- [MiaokitJS](https://github.com/YONGTOC/MiaokitJS): load *3mx/3mxb* LOD model files into Web browser.
 
 ## Thirdparty (source codes included for convenience):
 - [LASzip](https://github.com/LASzip/LASzip)
