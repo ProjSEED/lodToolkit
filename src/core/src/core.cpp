@@ -1,5 +1,6 @@
 #include "core.h"
 #include <chrono>
+#include <mutex>
 #include <stdarg.h>
 
 namespace seed
@@ -42,6 +43,7 @@ namespace seed
 			default:
 				break;
 			}
+			fflush(stdout);
 			return true;
 		}
 	}
@@ -74,6 +76,8 @@ namespace seed
 		};
 
 		Timer timer;
+		std::mutex mtx;
+		int percent = -1;
 
 		std::string secondToString(double sec)
 		{
@@ -94,11 +98,21 @@ namespace seed
 			}
 		}
 
-		void UpdateProgress(int value, bool resetTimer)
+		void UpdateProgress(int value, bool reset)
 		{
-			if (resetTimer)
+			std::lock_guard<std::mutex> lck(mtx);
+			if (reset)
 			{
 				timer.restart();
+				percent = -1;
+			}
+			if (percent < value)
+			{
+				percent = value;
+			}
+			else
+			{
+				return;
 			}
 			double elapsed = timer.elapsed();
 			if (value != 0 && elapsed > 30)

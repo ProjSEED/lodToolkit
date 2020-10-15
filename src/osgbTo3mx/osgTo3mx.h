@@ -18,8 +18,10 @@ namespace seed
 			bool Convert(const std::string&input, const std::string& output);
 
 		private:
+			bool CollectTiles(const std::string& inputData, const std::string& outputData,
+				std::vector<std::pair<std::string, std::string>>& topLevels, std::vector<std::pair<std::string, std::string>>& otherLevels);
+
 			bool ConvertMetadataTo3mx(const std::string& input, const std::string& outputDataRootRelative, const std::string& output);
-			bool ConvertTile(const std::string& inputData, const std::string& outputData, const std::string& tileName, osg::BoundingBox& bb);
 		};
 	}
 }

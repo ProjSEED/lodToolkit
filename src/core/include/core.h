@@ -25,6 +25,6 @@ namespace seed
 
 	namespace progress
 	{
-		void UpdateProgress(int value, bool resetTimer = false);
+		void UpdateProgress(int value, bool reset = false);
 	}
 }
