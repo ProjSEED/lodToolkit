@@ -3,22 +3,6 @@
 #include "core.h"
 
 #include <osg/BoundingBox>
-#include <osg/ref_ptr>
-#include <osg/Geode>
-#include <osg/Geometry>
-#include <osg/PagedLOD>
-#include <osg/ProxyNode>
-#include <osg/Vec3>
-#include <osg/Vec4>
-#include <osg/MatrixTransform>
-#include <osg/LineWidth>
-#include <osg/Point>
-#include <osgDB/ReaderWriter>
-#include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
-#include <osgDB/FileUtils>
-#include <osgDB/XmlParser>
-#include <osgDB/FileNameUtils>
 
 namespace seed
 {

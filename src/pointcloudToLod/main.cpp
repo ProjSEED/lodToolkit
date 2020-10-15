@@ -19,13 +19,13 @@ int main(int argc, char** argv)
 	configure_parser(parser);
 	parser.run_and_exit_if_error();
 
-	seed::log::DumpLog(seed::log::Debug, "Process started...");
-	seed::io::PointCloudToLOD pointcloudToLOD(parser.get<int>("t"), parser.get<int>("n"), parser.get<int>("d"),
-		parser.get<float>("r"), parser.get<float>("p"));
-
-	if (pointcloudToLOD.Export(parser.get<std::string>("m"), parser.get<std::string>("i"), parser.get<std::string>("o"), parser.get<std::string>("c")) > 0)
+	seed::log::DumpLog(seed::log::Info, "Process started...");
+	seed::io::PointCloudToLOD pointcloudToLOD;
+	if (pointcloudToLOD.Export(parser.get<std::string>("i"), parser.get<std::string>("o"), parser.get<std::string>("m"), 
+		parser.get<int>("t"), parser.get<int>("n"), parser.get<int>("d"),
+		parser.get<float>("r"), parser.get<float>("p"), parser.get<std::string>("c")))
 	{
-		seed::log::DumpLog(seed::log::Debug, "Process succeed!");
+		seed::log::DumpLog(seed::log::Info, "Process succeed!");
 	}
 	else
 	{

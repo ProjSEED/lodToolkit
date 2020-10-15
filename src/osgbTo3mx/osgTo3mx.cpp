@@ -1,7 +1,13 @@
 #include "osgTo3mx.h"
+#include "c3mx.h"
 
 #include <execution>
 #include <mutex>
+
+#include <osgDB/ReadFile>
+#include <osgDB/FileUtils>
+#include <osgDB/XmlParser>
+#include <osgDB/FileNameUtils>
 
 namespace seed
 {
@@ -19,12 +25,12 @@ namespace seed
 			std::string outputDataRoot = output + "/" + outputDataRootRelative;
 
 			seed::progress::UpdateProgress(0);
-			if (!utils::CheckOrCreateFolder(output))
+			if (!osgDB::makeDirectory(output))
 			{
 				seed::log::DumpLog(seed::log::Critical, "Create folder %s failed!", output.c_str());
 				return false;
 			}
-			if (!utils::CheckOrCreateFolder(outputData))
+			if (!osgDB::makeDirectory(outputData))
 			{
 				seed::log::DumpLog(seed::log::Critical, "Create folder %s failed!", outputData.c_str());
 				return false;
@@ -128,7 +134,7 @@ namespace seed
 		{
 			std::string inputTile = inputData + tileName + "/";
 			std::string outputTile = outputData + tileName + "/";
-			if (!utils::CheckOrCreateFolder(outputTile))
+			if (!osgDB::makeDirectory(outputTile))
 			{
 				seed::log::DumpLog(seed::log::Critical, "Create folder %s failed!", outputTile.c_str());
 				return false;

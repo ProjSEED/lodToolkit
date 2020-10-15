@@ -1,4 +1,5 @@
 #include "tileToLOD.h"
+#include "c3mx.h"
 
 namespace seed
 {
@@ -231,14 +232,14 @@ namespace seed
 			else
 			{
 				char tmpSaveFileName[100];
-				sprintf(tmpSaveFileName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level, "_", childNo, format);
+				sprintf(tmpSaveFileName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level, "_", childNo, format.c_str());
 				saveFileName.assign(tmpSaveFileName);
 				saveFileName = saveFilePath + saveFileName;
 			}
 			char tmpLeftPageName[100], tmpRightPageName[100];
-			sprintf(tmpLeftPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2, format);
+			sprintf(tmpLeftPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2, format.c_str());
 			leftPageName.assign(tmpLeftPageName);
-			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, format);
+			sprintf(tmpRightPageName, "%s%s%s%d%s%d%s", "/", strBlock.c_str(), "_L", level + 1, "_", childNo * 2 + 1, format.c_str());
 			rightPageName.assign(tmpRightPageName);
 
 			// handle leaf case
