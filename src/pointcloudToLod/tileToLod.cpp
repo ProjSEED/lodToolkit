@@ -315,21 +315,27 @@ namespace seed
 				double rangeRatio = 4.;
 				double rangeValue = boundingBoxLevel0.radius() * 2.f * _lodRatio * rangeRatio;
 
-				osg::ref_ptr<osg::PagedLOD>  leftPageNode = new osg::PagedLOD;
-				leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
-				leftPageNode->setFileName(0, leftPageName);
-				leftPageNode->setRange(0, rangeValue, FLT_MAX);
-				leftPageNode->setCenter(leftBoundingBox.center());
-				leftPageNode->setRadius(leftBoundingBox.radius());
-				mt->addChild(leftPageNode.get());
+				if (leftPointSetIndex.size())
+				{
+					osg::ref_ptr<osg::PagedLOD>  leftPageNode = new osg::PagedLOD;
+					leftPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
+					leftPageNode->setFileName(0, leftPageName);
+					leftPageNode->setRange(0, rangeValue, FLT_MAX);
+					leftPageNode->setCenter(leftBoundingBox.center());
+					leftPageNode->setRadius(leftBoundingBox.radius());
+					mt->addChild(leftPageNode.get());
+				}
 
-				osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
-				rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
-				rightPageNode->setFileName(0, rightPageName);
-				rightPageNode->setRange(0, rangeValue, FLT_MAX);
-				rightPageNode->setCenter(rightBoundingBox.center());
-				rightPageNode->setRadius(rightBoundingBox.radius());
-				mt->addChild(rightPageNode.get());
+				if (rightPointSetIndex.size())
+				{
+					osg::ref_ptr<osg::PagedLOD>  rightPageNode = new osg::PagedLOD;
+					rightPageNode->setRangeMode(osg::PagedLOD::PIXEL_SIZE_ON_SCREEN);
+					rightPageNode->setFileName(0, rightPageName);
+					rightPageNode->setRange(0, rangeValue, FLT_MAX);
+					rightPageNode->setCenter(rightBoundingBox.center());
+					rightPageNode->setRadius(rightBoundingBox.radius());
+					mt->addChild(rightPageNode.get());
+				}
 				if (exportMode == ExportMode::OSGB)
 				{
 					if (osgDB::writeNodeFile(*(mt.get()), saveFileName, new osgDB::ReaderWriter::Options("precision 20")) == false)
