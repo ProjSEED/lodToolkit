@@ -266,10 +266,13 @@ namespace seed
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.x());
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.y());
 			oJsonLayer["SRSOrigin"].Add(srsOrigin.z());
-			oJsonLayer.AddEmptySubArray("offset");
-			oJsonLayer["offset"].Add(offset.x());
-			oJsonLayer["offset"].Add(offset.y());
-			oJsonLayer["offset"].Add(offset.z());
+			if (abs(offset.x()) > DBL_EPSILON || abs(offset.y()) > DBL_EPSILON || abs(offset.z()) > DBL_EPSILON)
+			{
+				oJsonLayer.AddEmptySubArray("offset");
+				oJsonLayer["offset"].Add(offset.x());
+				oJsonLayer["offset"].Add(offset.y());
+				oJsonLayer["offset"].Add(offset.z());
+			}
 			oJsonLayer.Add("root", outputDataRootRelative);
 			oJson.AddEmptySubArray("layers");
 			oJson["layers"].Add(oJsonLayer);
