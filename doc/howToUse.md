@@ -33,7 +33,7 @@ pointcloudToLod.exe --input <FILE> --output <DIR>
 	-i, --input, [required], input file path, <ply/las/laz/xyz>
 	-o, --output, [required], output dir path
 	-m, --mode, [optional, default=3mx], output mode, <3mx/osgb>
-	-r, --lodRatio, [optional, default=1.0], how many pixel should 1 meter have in level 0 (the most coarse level)
+	-r, --lodRatio, [optional, default=1.0], use <1.0 value if original pointcloud is very sparse, use >1.0 value if original pointcloud is very dense
 	-t, --tileSize, [optional, default=1000000], max number of point in one tile
 	-n, --nodeSize, [optional, default=5000], max number of point in one node
 	-d, --depth, [optional, default=99], max lod tree depth
