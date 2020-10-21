@@ -466,6 +466,14 @@ namespace seed
 			ctm.SaveCustom(_ctm_write_buf, &bufferData);
 		}
 
+		unsigned char ColorFloatTo8Bits(float colorFloat)
+		{
+			int val = colorFloat * 255.f;
+			if (val < 0) return 0;
+			if (val > 255) return 255;
+			return static_cast<unsigned char>(val);
+		};
+
 		void GeometryPointCloudToBuffer(const std::string& input, osg::Geometry* geometry, std::vector<char>& bufferData)
 		{
 			if (geometry->getNumPrimitiveSets() == 0) {
@@ -473,7 +481,7 @@ namespace seed
 			}
 
 			std::vector<float> aVertices;
-			std::vector<char> aColors;
+			std::vector<unsigned char> aColors;
 
 			osg::Array* va = geometry->getVertexArray();
 			int vec_size = 0;
@@ -500,10 +508,10 @@ namespace seed
 				for (int vidx = 0; vidx < color_size; vidx++)
 				{
 					osg::Vec4f point = v4f->at(vidx);
-					aColors.push_back(char(point.x() * 255));
-					aColors.push_back(char(point.y() * 255));
-					aColors.push_back(char(point.z() * 255));
-					aColors.push_back(char(point.w() * 255));
+					aColors.push_back(ColorFloatTo8Bits(point.x()));
+					aColors.push_back(ColorFloatTo8Bits(point.y()));
+					aColors.push_back(ColorFloatTo8Bits(point.z()));
+					aColors.push_back(ColorFloatTo8Bits(point.w()));
 				}
 			}
 
@@ -516,7 +524,7 @@ namespace seed
 
 			bufferData.insert(bufferData.end(), (char*)&vec_size, (char*)&vec_size + 4);
 			bufferData.insert(bufferData.end(), (char*)aVertices.data(), (char*)aVertices.data() + sizeof(float) * aVertices.size());
-			bufferData.insert(bufferData.end(), (char*)aColors.data(), (char*)aColors.data() + sizeof(char) * aColors.size());
+			bufferData.insert(bufferData.end(), (char*)aColors.data(), (char*)aColors.data() + sizeof(unsigned char) * aColors.size());
 		}
 
 		void TextureToBuffer(const std::string& input, osg::Texture* texture, std::vector<char>& bufferData)

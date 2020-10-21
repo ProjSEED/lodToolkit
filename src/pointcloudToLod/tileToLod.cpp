@@ -35,7 +35,10 @@ namespace seed
 				steps.push_back(yellow);
 				steps.push_back(red);
 			}
-
+			else
+			{
+				return;
+			}
 			assert(steps.size() >= 2);
 			for (int i = 0; i < 256; ++i)
 			{
@@ -129,6 +132,14 @@ namespace seed
 			return true;
 		}
 
+		float Color8BitsToFloat(unsigned char color8Bit)
+		{
+			float val = color8Bit / 255.f;
+			if (val < 0) val = 0.f;
+			if (val > 1.f) val = 1.f;
+			return val;
+		};
+
 		osg::Geode *TileToLOD::MakeNodeGeode(const std::vector<PointCI> *pointSet,
 			std::vector<unsigned int> &pointIndex, ExportMode exportMode)
 		{
@@ -150,10 +161,10 @@ namespace seed
 				if (_colorMode == ColorMode::RGB)
 				{
 					colorArray->push_back(
-						osg::Vec4((float)tmpPoint.C[0] / 255.0f,
-						(float)tmpPoint.C[1] / 255.0f,
-						(float)tmpPoint.C[2] / 255.0f,
-						1));
+						osg::Vec4(Color8BitsToFloat(tmpPoint.C[0]),
+							Color8BitsToFloat(tmpPoint.C[1]),
+							Color8BitsToFloat(tmpPoint.C[2]),
+						1.f));
 				}
 				else if (_colorMode == ColorMode::IntensityGrey)
 				{
