@@ -78,11 +78,13 @@ namespace seed
 			// check output
 			if (osgDB::makeDirectory(output) == false)
 			{
+				seed::log::DumpLog(seed::log::Critical, "Make directory %s failed!", output.c_str());
 				return false;
 			}
 			std::string filePathData = output + "/Data";
 			if (osgDB::makeDirectory(filePathData) == false)
 			{
+				seed::log::DumpLog(seed::log::Critical, "Make directory %s failed!", filePathData.c_str());
 				return false;
 			}
 
@@ -103,6 +105,7 @@ namespace seed
 				std::string tilePath = filePathData + "/" + tileName;
 				if (osgDB::makeDirectory(tilePath) == false)
 				{
+					seed::log::DumpLog(seed::log::Critical, "Make directory %s failed!", tilePath.c_str());
 					return false;
 				}
 
