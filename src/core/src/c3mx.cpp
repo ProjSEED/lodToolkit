@@ -744,8 +744,6 @@ namespace seed
 			else if (osgNode->asGeode())
 			{
 				osg::Geode* geode = osgNode->asGeode();
-				osg::BoundingBox bb;
-				bb.expandBy(geode->getBound());
 
 				Node3mx node;
 				node.id = "node0";
