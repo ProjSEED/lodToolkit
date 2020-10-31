@@ -58,7 +58,7 @@ namespace seed
 			bool ReadNextPoint(PointCI& point) override;
 
 		private:
-			osg::Vec3d _offsetFirstPoint;
+			osg::Vec3d _offsetCenter;
 			laszip_point* _pointRead;//current reading point
 			laszip_POINTER _laszipReader;
 			laszip_header* _laszipHeader;
@@ -165,21 +165,21 @@ namespace seed
 				// init offset
 				if (_currentPointId == 0)
 				{
-					_offsetFirstPoint[0] = _pointRead->X * _laszipHeader->x_scale_factor;
-					_offsetFirstPoint[1] = _pointRead->Y * _laszipHeader->y_scale_factor;
-					_offsetFirstPoint[2] = _pointRead->Z * _laszipHeader->z_scale_factor;
+					_offsetCenter[0] = (_laszipHeader->min_x + _laszipHeader->max_x) / 2.0;
+					_offsetCenter[1] = (_laszipHeader->min_y + _laszipHeader->max_y) / 2.0;
+					_offsetCenter[2] = (_laszipHeader->min_z + _laszipHeader->max_z) / 2.0;
 
 					_offset[0] = _laszipHeader->x_offset;
 					_offset[1] = _laszipHeader->y_offset;
 					_offset[2] = _laszipHeader->z_offset;
 
-					_offset += _offsetFirstPoint;
+					_offset += _offsetCenter;
 				}
 
 				// add scale to coords
-				pt.P[0] = _pointRead->X * _laszipHeader->x_scale_factor - _offsetFirstPoint[0];
-				pt.P[1] = _pointRead->Y * _laszipHeader->y_scale_factor - _offsetFirstPoint[1];
-				pt.P[2] = _pointRead->Z * _laszipHeader->z_scale_factor - _offsetFirstPoint[2];
+				pt.P[0] = _pointRead->X * _laszipHeader->x_scale_factor - _offsetCenter[0];
+				pt.P[1] = _pointRead->Y * _laszipHeader->y_scale_factor - _offsetCenter[1];
+				pt.P[2] = _pointRead->Z * _laszipHeader->z_scale_factor - _offsetCenter[2];
 
 				auto& rgb = _pointRead->rgb;
 				pt.C[0] = Color8Bits(rgb[0]);
