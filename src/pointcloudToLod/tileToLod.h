@@ -40,10 +40,11 @@ namespace seed
 
 		enum ColorMode
 		{
-			RGB = 0,
-			IntensityGrey = 1,
-			IntensityBlueWhiteRed = 2,
-			IntensityHeightBlend = 3
+			Debug = 0,
+			RGB = 1,
+			IntensityGrey = 2,
+			IntensityBlueWhiteRed = 3,
+			IntensityHeightBlend = 4
 		};
 
 		enum ExportMode

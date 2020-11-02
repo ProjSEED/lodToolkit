@@ -1,5 +1,7 @@
 #include "tileToLOD.h"
 #include "c3mx.h"
+#include <random>
+#include <chrono>
 
 namespace seed
 {
@@ -8,7 +10,15 @@ namespace seed
 		void TileToLOD::CreateColorBar()
 		{
 			std::vector<osg::Vec4> steps;
-			if (_colorMode == ColorMode::IntensityGrey)
+			if (_colorMode == ColorMode::Debug)
+			{
+				std::random_device e;
+				std::uniform_real_distribution<double> randomDist(0, 1);
+				osg::Vec4 random(randomDist(e), randomDist(e), randomDist(e), 1.);
+				steps.push_back(random);
+				steps.push_back(random);
+			}
+			else if (_colorMode == ColorMode::IntensityGrey)
 			{
 				osg::Vec4 black(0., 0., 0., 1.);
 				osg::Vec4 white(1., 1., 1., 1.);
@@ -158,7 +168,11 @@ namespace seed
 			{
 				PointCI tmpPoint = pointSet->at(*i);
 				pointArray->push_back(tmpPoint.P);
-				if (_colorMode == ColorMode::RGB)
+				if (_colorMode == ColorMode::Debug)
+				{
+					colorArray->push_back(_colorBar[0]);
+				}
+				else if (_colorMode == ColorMode::RGB)
 				{
 					colorArray->push_back(
 						osg::Vec4(Color8BitsToFloat(tmpPoint.C[0]),

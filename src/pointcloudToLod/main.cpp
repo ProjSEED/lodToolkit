@@ -10,7 +10,7 @@ void configure_parser(cli::Parser& parser) {
 	parser.set_optional<int>("n", "nodeSize", 5000, "max number of point in one node");
 	parser.set_optional<int>("d", "depth", 99, "max lod tree depth");
 	parser.set_optional<float>("p", "pointSize", 10.0f, "point size");
-	parser.set_optional<std::string>("c", "colorMode", "iHeightBlend", "[las/lsz format only] <rgb/iGrey/iBlueWhiteRed/iHeightBlend>, iGrey/iBlueWhiteRed/iHeightBlend use intensity from las/laz");
+	parser.set_optional<std::string>("c", "colorMode", "iHeightBlend", "<rgb/iGrey/iBlueWhiteRed/iHeightBlend/debug>, iGrey/iBlueWhiteRed/iHeightBlend mode use intensity from las/laz, debug mode renders each tile in different color");
 }
 
 int main(int argc, char** argv)

@@ -42,7 +42,11 @@ namespace seed
 
 			// check color mode
 			ColorMode eColorMode;
-			if (colorMode == "rgb")
+			if (colorMode == "debug")
+			{
+				eColorMode = ColorMode::Debug;
+			}
+			else if (colorMode == "rgb")
 			{
 				eColorMode = ColorMode::RGB;
 			}
