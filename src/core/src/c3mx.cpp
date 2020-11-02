@@ -333,10 +333,11 @@ namespace seed
 			return type;
 		}
 
-		void GeometryTriMeshToBuffer(const std::string& input, osg::Geometry* geometry, std::vector<char>& bufferData)
+		osg::BoundingBox GeometryTriMeshToBuffer(const std::string& input, osg::Geometry* geometry, std::vector<char>& bufferData)
 		{
+			osg::BoundingBox bb;
 			if (geometry->getNumPrimitiveSets() == 0) {
-				return;
+				return bb;
 			}
 
 			std::vector<CTMuint> aIndices;
@@ -433,6 +434,7 @@ namespace seed
 				aVertices.push_back(point.x());
 				aVertices.push_back(point.y());
 				aVertices.push_back(point.z());
+				bb.expandBy(point);
 			}
 			// normal
 			int normal_size = 0;
@@ -467,6 +469,7 @@ namespace seed
 			ctm.DefineMesh(aVertices.data(), aVertices.size() / 3, aIndices.data(), aIndices.size() / 3, aNormals.data());
 			ctm.AddUVMap(aUVCoords.data(), nullptr, nullptr);
 			ctm.SaveCustom(_ctm_write_buf, &bufferData);
+			return bb;
 		}
 
 		unsigned char ColorFloatTo8Bits(float colorFloat)
@@ -477,10 +480,11 @@ namespace seed
 			return static_cast<unsigned char>(val);
 		};
 
-		void GeometryPointCloudToBuffer(const std::string& input, osg::Geometry* geometry, std::vector<char>& bufferData)
+		osg::BoundingBox GeometryPointCloudToBuffer(const std::string& input, osg::Geometry* geometry, std::vector<char>& bufferData)
 		{
+			osg::BoundingBox bb;
 			if (geometry->getNumPrimitiveSets() == 0) {
-				return;
+				return bb;
 			}
 
 			std::vector<float> aVertices;
@@ -498,6 +502,7 @@ namespace seed
 					aVertices.push_back(point.x());
 					aVertices.push_back(point.y());
 					aVertices.push_back(point.z());
+					bb.expandBy(point);
 				}
 			}
 
@@ -519,15 +524,16 @@ namespace seed
 			}
 
 			if (vec_size == 0) {
-				return;
+				return bb;
 			}
 			if (vec_size != color_size) {
-				return;
+				return bb;
 			}
 
 			bufferData.insert(bufferData.end(), (char*)&vec_size, (char*)&vec_size + 4);
 			bufferData.insert(bufferData.end(), (char*)aVertices.data(), (char*)aVertices.data() + sizeof(float) * aVertices.size());
 			bufferData.insert(bufferData.end(), (char*)aColors.data(), (char*)aColors.data() + sizeof(unsigned char) * aColors.size());
+			return bb;
 		}
 
 		void TextureToBuffer(const std::string& input, osg::Texture* texture, std::vector<char>& bufferData)
@@ -582,12 +588,10 @@ namespace seed
 			}
 		}
 
-		void ParseGeode(const std::string& input, osg::Geode* geode, Node3mx& node, std::vector<Resource3mx>& resourcesGeometry, std::vector<Resource3mx>& resourcesTexture)
+		void ParseGeode(const std::string& input, osg::Geode* geode, Node3mx& node, std::vector<Resource3mx>& resourcesGeometry, std::vector<Resource3mx>& resourcesTexture, osg::BoundingBox* pbb = nullptr)
 		{
 			osg::BoundingBox bb;
-			bb.expandBy(geode->getBound());
 
-			node.bb = bb;
 			node.maxScreenDiameter = 1e30;
 
 			InfoVisitor infoVisitor;
@@ -621,8 +625,8 @@ namespace seed
 					{
 						resGeometry.texture = texture_id_map[infoVisitor.texture_map[g]];
 					}
-					resGeometry.bb = bb;
-					GeometryTriMeshToBuffer(input, g, resGeometry.bufferData);
+					resGeometry.bb = GeometryTriMeshToBuffer(input, g, resGeometry.bufferData);
+					bb.expandBy(resGeometry.bb);
 
 					resourcesGeometry.emplace_back(resGeometry);
 					node.resources.push_back(resGeometry.id);
@@ -633,7 +637,6 @@ namespace seed
 					resGeometry.type = "geometryBuffer";
 					resGeometry.format = "xyz";
 					resGeometry.id = "geometry" + std::to_string(resourcesGeometry.size());
-					resGeometry.bb = bb;
 					osg::Point* point = dynamic_cast<osg::Point*>(g->getOrCreateStateSet()->getAttribute(osg::StateAttribute::POINT));
 					if (point)
 					{
@@ -643,11 +646,17 @@ namespace seed
 					{
 						resGeometry.pointSize = 10.0;
 					}
-					GeometryPointCloudToBuffer(input, g, resGeometry.bufferData);
+					resGeometry.bb = GeometryPointCloudToBuffer(input, g, resGeometry.bufferData);
+					bb.expandBy(resGeometry.bb);
 
 					resourcesGeometry.emplace_back(resGeometry);
 					node.resources.push_back(resGeometry.id);
 				}
+			}
+			node.bb = bb;
+			if (pbb)
+			{
+				*pbb = bb;
 			}
 		}
 
@@ -664,6 +673,7 @@ namespace seed
 				node.children.push_back(baseName + ".3mxb");
 			}
 
+			osg::BoundingBox bb;
 			if (lod->getNumChildren())
 			{
 				if (lod->getNumChildren() > 1)
@@ -673,12 +683,10 @@ namespace seed
 				osg::Geode* geode = lod->getChild(0)->asGeode();
 				if (geode)
 				{
-					ParseGeode(input, geode, node, resourcesGeometry, resourcesTexture);
+					ParseGeode(input, geode, node, resourcesGeometry, resourcesTexture, &bb);
 				}
 			}
 
-			osg::BoundingBox bb;
-			bb.expandBy(lod->getBound());
 			node.bb = bb;
 			if (lod->getRangeList().size() >= 2)
 			{
@@ -767,9 +775,25 @@ namespace seed
 				nodes.push_back(node);
 			}
 
-			if (pbb && nodes.size())
+			osg::BoundingBox bb;
+			for (auto& node : nodes)
 			{
-				*pbb = nodes[0].bb;
+				if (node.bb.valid())
+				{
+					bb.expandBy(node.bb);
+				}
+			}
+			for (auto& node : nodes)
+			{
+				if (!node.bb.valid())
+				{
+					node.bb = bb;
+				}
+			}
+
+			if (pbb && bb.valid())
+			{
+				*pbb = bb;
 			}
 
 			if (nodes.empty())
