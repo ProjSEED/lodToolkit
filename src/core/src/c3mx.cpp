@@ -257,7 +257,7 @@ namespace seed
 			oJson["sceneOptions"].Add(oJsonSceneOption);
 
 			neb::CJsonObject oJsonLayer;
-			oJsonLayer.Add("type", "modelPyramid");
+			oJsonLayer.Add("type", "meshPyramid");
 			oJsonLayer.Add("id", "model0");
 			oJsonLayer.Add("name", "Root");
 			oJsonLayer.Add("description", "Converted by ProjSEED/lodToolkit, copyright <a href='https://github.com/ProjSEED/lodToolkit' target='_blank'>ProjSEED</a>.");
