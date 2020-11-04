@@ -13,6 +13,12 @@ namespace seed
 {
 	namespace io
 	{
+		struct c_unique {
+			int current;
+			c_unique() { current = 0; }
+			int operator()() { return current++; }
+		} UniqueNumber;
+
 		bool OsgTo3mx::Convert(const std::string& input, const std::string& output)
 		{
 			std::string inputMetadata = input + "/metadata.xml";
@@ -59,13 +65,26 @@ namespace seed
 
 			seed::progress::UpdateProgress(0, true);
 			int total = topLevels.size() + otherLevels.size();
-			int processedTopLevel = 0;
+			std::atomic_int processed = 0;
+			std::atomic_bool flag = true;
+			std::mutex mutex;
+
 			{
-				std::vector<std::string> tileIds;
-				std::vector<std::string> tileRelativePaths;
-				std::vector<osg::BoundingBox> tileBBoxes;
-				for each (auto tileNode in topLevels)
+				std::vector<int> ids(topLevels.size());
+				std::generate(ids.begin(), ids.end(), UniqueNumber);
+
+				std::vector<std::string> tileIds(topLevels.size());
+				std::vector<std::string> tileRelativePaths(topLevels.size());
+				std::vector<osg::BoundingBox> tileBBoxes(topLevels.size());
+
+#if _HAS_CXX17 && !_DEBUG
+				std::for_each(std::execution::par_unseq, std::begin(ids), std::end(ids), [&](int id)
+#else
+				std::for_each(std::begin(ids), std::end(ids), [&](int id)
+#endif
 				{
+					std::pair<std::string, std::string> tileNode = topLevels[id];
+
 					std::string inputOsgbName = tileNode.first + "/" + tileNode.second + ".osgb";
 					std::string output3mxbName = tileNode.first + "/" + tileNode.second + ".3mxb";
 					std::string inputOsgb = inputData + inputOsgbName;
@@ -76,19 +95,23 @@ namespace seed
 					if (!ConvertOsgbTo3mxb(osgNode, output3mxb, &bb))
 					{
 						seed::log::DumpLog(seed::log::Critical, "Convert %s failed!", inputOsgb.c_str());
-						return false;
+						flag.store(false);
 					}
 					if (bb.valid())
 					{
-						tileIds.push_back(tileNode.first);
-						tileRelativePaths.push_back(output3mxbName);
-						tileBBoxes.push_back(bb);
+						tileIds[id] = tileNode.first;
+						tileRelativePaths[id] = output3mxbName;
+						tileBBoxes[id] = bb;
 					}
 					{
-						processedTopLevel++;
-						int cur = processedTopLevel * 100 / total;
+						int cur = (processed.fetch_add(1) + 1) * 100 / total;
 						seed::progress::UpdateProgress(cur);
 					}
+				}
+				);
+				if (!flag)
+				{
+					return false;
 				}
 				if (!Generate3mxbRoot(tileIds, tileRelativePaths, tileBBoxes, outputDataRoot))
 				{
@@ -96,13 +119,11 @@ namespace seed
 					return false;
 				}
 			}
-
-			std::atomic_bool flag = true;
-			std::atomic_int processed = processedTopLevel;
+			{
 #if _HAS_CXX17 && !_DEBUG
-			std::for_each(std::execution::par_unseq, std::begin(otherLevels), std::end(otherLevels), [&](std::pair<std::string, std::string> tileNode)
+				std::for_each(std::execution::par_unseq, std::begin(otherLevels), std::end(otherLevels), [&](std::pair<std::string, std::string> tileNode)
 #else
-			std::for_each(std::begin(otherLevels), std::end(otherLevels), [&](std::pair<std::string, std::string> tileNode)
+				std::for_each(std::begin(otherLevels), std::end(otherLevels), [&](std::pair<std::string, std::string> tileNode)
 #endif
 				{
 					std::string inputOsgbName = tileNode.first + "/" + tileNode.second + ".osgb";
@@ -121,11 +142,12 @@ namespace seed
 						seed::progress::UpdateProgress(cur);
 					}
 				}
-			);
-			if (!flag)
-			{
-				return false;
-			}			
+				);
+				if (!flag)
+				{
+					return false;
+				}
+			}
 			seed::progress::UpdateProgress(100);
 			return true;
 		}
