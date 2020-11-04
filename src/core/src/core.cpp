@@ -78,6 +78,7 @@ namespace seed
 		Timer timer;
 		std::mutex mtx;
 		int percent = -1;
+		double elapsedLast = 0;
 
 		std::string secondToString(double sec)
 		{
@@ -106,15 +107,16 @@ namespace seed
 				timer.restart();
 				percent = -1;
 			}
+			double elapsed = timer.elapsed();
 			if (percent < value)
 			{
 				percent = value;
 			}
-			else
+			else if(elapsed - elapsedLast < 30)
 			{
 				return;
 			}
-			double elapsed = timer.elapsed();
+			elapsedLast = elapsed;
 			if (value != 0 && elapsed > 30)
 			{
 				double remaining = elapsed / value * (100 - value);
