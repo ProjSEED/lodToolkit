@@ -93,7 +93,7 @@
 			"navigationMode":	"ORBIT"
 		}],
 	"layers":	[{
-			"type":	"modelPyramid",
+			"type":	"meshPyramid",
 			"id":	"model0",
 			"name":	"Root",
 			"description":	"Converted by ProjSEED/lodToolkit, copyright <a href='https://github.com/ProjSEED/lodToolkit' target='_blank'>ProjSEED</a>.",
