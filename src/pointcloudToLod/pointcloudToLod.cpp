@@ -105,7 +105,7 @@ namespace seed
 			while (this->LoadPointsForOneTile(pointVisitor, lstPoints, tileSize, processedPoints))
 			{
 				TileToLOD lodGenerator(maxTreeDepth, maxPointNumPerOneNode, lodRatio, pointSize, pointVisitor->GetBBoxZHistogram(), eColorMode);
-				std::string tileName = "Tile_+" + std::to_string(tileID++);
+				std::string tileName = "Tile_" + std::to_string(tileID++);
 				std::string tilePath = filePathData + "/" + tileName;
 				if (osgDB::makeDirectory(tilePath) == false)
 				{
