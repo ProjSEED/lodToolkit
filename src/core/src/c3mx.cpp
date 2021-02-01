@@ -467,7 +467,10 @@ namespace seed
 
 			CTMexporter ctm;
 			ctm.DefineMesh(aVertices.data(), aVertices.size() / 3, aIndices.data(), aIndices.size() / 3, aNormals.data());
-			ctm.AddUVMap(aUVCoords.data(), nullptr, nullptr);
+			if (aUVCoords.size())
+			{
+				ctm.AddUVMap(aUVCoords.data(), nullptr, nullptr);
+			}
 			ctm.SaveCustom(_ctm_write_buf, &bufferData);
 			return bb;
 		}
