@@ -210,6 +210,9 @@ namespace seed
 
 			for (int i = 0; i < tileIds.size(); ++i)
 			{
+				if(tileIds[i].size() == 0 || tileBBoxes[i].valid() == false)
+					continue;
+				
 				Node3mx node;
 				node.id = tileIds[i];
 				node.maxScreenDiameter = 0;
